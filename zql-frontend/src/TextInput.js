@@ -31,7 +31,7 @@ class TextInput extends Component {
         />
         <button onClick={this.handleClick}>Submit</button>
       </div>
-    );		
+    );
 	}
 }
 

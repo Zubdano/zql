@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import TextInput from './TextInput';
+import HttpButton from './HttpButton';
 
 class App extends Component {
   render() {
@@ -16,6 +17,7 @@ class App extends Component {
           Ayy yo boi, type sum shit
         </p>
         <TextInput />
+        <HttpButton />
       </div>
     );
   }

@@ -10,7 +10,9 @@ ADJ_TOKENS = frozenset(['funny', 'yellow'])
 
 @app.route('/')
 def hello():
-    return jsonify({'yo': 'face'})
+    resp = jsonify({'yo': 'face'})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 
 @app.route('/annotation/', methods=['POST'])
