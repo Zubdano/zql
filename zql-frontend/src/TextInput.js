@@ -1,38 +1,42 @@
 import React, { Component } from 'react';
-import "./TextInput.css";
+import { connect } from 'react-redux'
+
+import './TextInput.css';
+import { fetchAnnotation, updateSentenceText } from './reducer';
 
 
 class TextInput extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      value: 'Please no cance',
-    };
-  }
 
   handleChange = event => {
-    this.setState({value: event.target.value});
     console.log(`input changed to '${event.target.value}'`);
+    this.props.updateSentenceText(event.target.value);
+    this.props.fetchAnnotation(this.props.sentence);
   };
 
   handleClick = () => {
-    console.log(`input submitted '${this.state.value}'`);
+    console.log(this.state.sentence);
   };
 
+  getText() {
+    return this.props.sentence.words.map(word => word.text).join(' ');
+  }
+
 	render() {
+
+    console.log(this.props);
     // TODO: Make textbox and button pretty
     return (
       <div>
         <textarea
           className="TextInput"
           type="text"
-          value={this.state.value}
           onChange={this.handleChange}
         />
         <button onClick={this.handleClick}>Submit</button>
+        <div>{this.getText()}</div>
       </div>
     );
 	}
 }
 
-export default TextInput;
+export default connect(state => state, {fetchAnnotation, updateSentenceText})(TextInput);
