@@ -1,5 +1,18 @@
-.TextInput {
-	width: 50%;
+.textInput {
+  font-family: 'Georgia', serif;
+  padding: 20px;
   margin: auto;
-  display: block;
+  width: 600px;
+}
+
+.editorContainer {
+  border: 1px solid #ccc;
+  cursor: text;
+  min-height: 80px;
+  padding: 10px;
+}
+
+.logStateButton {
+  marginTop: 10px;
+  textAlign: center;
 }
