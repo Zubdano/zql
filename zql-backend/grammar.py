@@ -1,4 +1,7 @@
+from collections import Iterable
+
 from arpeggio import Optional, ZeroOrMore, OneOrMore, EOF, ParserPython, NoMatch, RegExMatch
+
 
 ### GRAMMAR ###
 
@@ -6,11 +9,11 @@ def root(): return [diagnosis_grammar, examination_grammar]
 
 def diagnosis_grammar(): return 'diagnosed', patient, 'with', disease
 
-def examination_grammar(): return 'performed', exam, 'on', patient
+def examination_grammar(): return 'performed', exams, 'on', patient
 
 def disease(): return ['cancer', 'hiv', 'aids', 'cance']
 
-def exam(): return ['catscan', 'anal probe', 'needle probe']
+def exams(): return OneOrMore(['catscan', 'anal probe', 'needle probe'], sep=',')
 
 def patient(): return RegExMatch(r'\w+')
 
@@ -68,7 +71,20 @@ def parse_properties(grammar_node):
     # all its children rules are denormalized to 1 level deep
     for rule in grammar_node:
         if rule.rule_name != '':
-            yield (rule.rule_name, str(rule))
+            if isinstance(rule, Iterable):
+                # TODO: this happens in the case that a rule is
+                # an xor of potential values. Thus, we would get
+                # a list containing solely the value.
+                # E.g. disease -> [hiv]
+
+                values = []
+                for subrule in rule:
+                    value = str(subrule)
+                    if value != ',':
+                        values.append(value)
+                yield (rule.rule_name, values)
+            else:
+                yield (rule.rule_name, str(rule))
 
 def init_keywords(root_rule):
     print('Initializing keywords...')
