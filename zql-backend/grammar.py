@@ -1,66 +1,71 @@
-from textx.metamodel import metamodel_from_str
-from textx.exceptions import TextXSyntaxError
+from arpeggio import Optional, ZeroOrMore, OneOrMore, EOF, ParserPython, NoMatch, RegExMatch
 
+### GRAMMAR ###
 
+def root(): return [diagnosis_grammar, examination_grammar]
+
+def diagnosis_grammar(): return 'diagnosed', patient, 'with', disease
+
+def examination_grammar(): return 'examined', patient, 'with', exam
+
+def disease(): return ['cancer', 'hiv', 'aids']
+
+def exam(): return ['catscan', 'anal probe', 'needle probe']
+
+def patient(): return RegExMatch(r'\w+')
+
+###########
+
+# STATUSES
 ACCEPT = 'accept'
 REJECT = 'reject'
-FAILURE = 'failure'
 INCOMPLETE = 'incomplete'
 
-class GrammarRule(object):
-    def __init__(self, name, grammar, properties):
-        self.name = name
-        self.grammar = grammar
-        self.properties = properties
+def parse_sentence(sentence):
+    parser = ParserPython(root)
+    res = {
+        'rule': None,
+        'status': None,
+        'properties': {},
+        'suggestions': [],
+        'rejectindex': -1,
+    }
 
-        # If grammar invalid, following will raise.
-        self.metamodel = metamodel_from_str(grammar)
+    try:
+        root_node = parser.parse(sentence)
+        grammar_node = root_node[0]
+        res['rule'] = grammar_node.rule_name
+        res['status'] = ACCEPT
+        res['properties'] = dict(parse_properties(grammar_node))
+    except NoMatch as e:
+        if e.col == len(sentence) + 1:
+            # the sentence failed to match at the very end
+            # so the status of it is incomplete match
+            res['status'] = INCOMPLETE
+        else:
+            res['status'] = REJECT
 
-    def parse(self, raw):
-        result = {
-            'rule': self.name,
-            'status': None,
-            'properties': {},
-            'rejection_idx': -1,
-        }
+        res['suggestions'] = list(parse_autocomplete(e.rules))
+        res['rejectindex'] = e.col
 
-        try:
-	    model = self.metamodel.model_from_str(raw)
-            result['status'] = ACCEPT
-            result['properties'] = self._get_properties(model)
-        except TextXSyntaxError as e:
-            result['status'] = INCOMPLETE if e.col == len(raw) + 1 else REJECT
-            result['rejection_idx'] = e.col
-        except AttributeError as e:
-            result['status'] = FAILURE
+    return res
 
-        return result
+def parse_autocomplete(nomatch_rules):
+    for rule in nomatch_rules:
+        if isinstance(rule, RegExMatch):
+            yield {
+                'type': 'property',
+                'suggest': rule.rule_name,
+            }
+        else:
+            yield {
+                'type': 'value',
+                'suggest': str(rule),
+            }
 
-    def _get_properties(self, model):
-        return dict(map(lambda p: (p, getattr(model, p)), self.properties))
-
-diagnosis = '''
-Diagnosis:
-    'diagnosed' patient=ID 'with' disease=Disease
-;
-
-Disease:
-    'hiv' | 'aids' | 'diabetes' | 'ebola' | 'adhd' | 'cancer' | 'cance'
-;
-'''
-
-examination = '''
-Examination:
-    'performed' exams+=Exam[','] 'on' patient=ID
-;
-
-Exam:
-    'mri' | 'catscan' | 'needle scan' | 'vaccination' | 'cance scan' | 'anal probe'
-;
-'''
-
-# TODO: turn this into a dictionary probably.
-rules = [
-    GrammarRule('diagnosis', diagnosis, ['patient', 'disease']),
-    GrammarRule('examination', examination, ['exams', 'patient']),
-]
+def parse_properties(grammar_node):
+    # grammar node is the top level node
+    # all its children rules are denormalized to 1 level deep
+    for rule in grammar_node:
+        if rule.rule_name != '':
+            yield (rule.rule_name, str(rule))

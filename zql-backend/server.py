@@ -6,8 +6,8 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 def persist(raw_text, parse_result):
-    print 'Successfully parsed', raw_text, 'with rule', parse_result['rule']
-    print 'Parsed properties:', parse_result['properties']
+    print('Successfully parsed', raw_text, 'with rule', parse_result['rule'])
+    print('Parsed properties:', parse_result['properties'])
 
 @app.route('/')
 def hello():
@@ -26,18 +26,14 @@ def annotation():
         resp.headers['Content-Type'] = 'application/json'
         return resp
 
-    data = json.loads(request.data)
-    raw_text = data['raw']
+    data = request.json
+    print(data)
+    sentence = data['raw']
     
-    rule_parsing_data = []
-    for rule in grammar.rules:
-        parse_result = rule.parse(raw_text)
-
-        if parse_result['status'] == grammar.ACCEPT:
-            persist(raw_text, parse_result)
-
-        rule_parsing_data.append(parse_result)
-
-    resp = jsonify(rule_parsing_data)
+    parsed_result = grammar.parse_sentence(sentence)
+    resp = jsonify(parsed_result)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
+
+if __name__ == '__main__':
+    app.run()
