@@ -2,17 +2,20 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import { convertToRaw, EditorState } from 'draft-js';
 import Editor from 'draft-js-plugins-editor';
-import { fromJS, List } from 'immutable';
+import { List, fromJS } from 'immutable';
 import 'draft-js/dist/Draft.css';
 
-import createIssueSuggestionPlugin, { defaultSuggestionsFilter } from './plugin';
-import './TextInput.css';
-import './Draft.scss';
+import createIssueSuggestionPlugin, { defaultSuggestionsFilter } from '../plugin';
+import './TextInput.scss';
 import {
   fetchAnnotation,
   fetchKeywords,
   setEditorState,
-} from './reducer';
+} from '../reducer';
+
+const issueSuggestionPlugin = createIssueSuggestionPlugin();
+const { CompletionSuggestions } = issueSuggestionPlugin;
+const plugins = [issueSuggestionPlugin];
 
 const suggestions = fromJS([
   {
@@ -29,16 +32,15 @@ const suggestions = fromJS([
   },
 ]);
 
-const issueSuggestionPlugin = createIssueSuggestionPlugin();
-const { CompletionSuggestions } = issueSuggestionPlugin;
-const plugins = [issueSuggestionPlugin];
-
 class TextInput extends Component {
+  constructor(props) {
+    super(props);
 
-  state = {
-    editorState: EditorState.createEmpty(),
-    suggestions: List(),
-  };
+    this.state = {
+      editorState: EditorState.createEmpty(),
+      suggestions: List(),
+    };
+  }
 
   componentDidMount() {
     this.props.fetchKeywords();
@@ -46,6 +48,7 @@ class TextInput extends Component {
 
   handleChange = (editorState) => {
     this.setState({editorState});
+
     const oldContent = this.props.editorState.getCurrentContent();
     const newContent = editorState.getCurrentContent();
     if (oldContent !== newContent) {
@@ -63,8 +66,6 @@ class TextInput extends Component {
     });
   };
 
-  handleAddMention = () => {};
-
   logState = () => {
     const content = this.props.editorState.getCurrentContent();
     console.log(convertToRaw(content));
@@ -74,19 +75,20 @@ class TextInput extends Component {
 
   render() {
     return (
-      <div className="textInput">
-        <div className="editor" onClick={this.focus}>
+      <div className='textInput'>
+        <div className='editor' onClick={this.focus} >
           <Editor
             editorState={this.state.editorState}
             onChange={this.handleChange}
-            placeholder="Enter some text..."
             plugins={plugins}
-            ref="editor"
+            spellCheck
+            stripPastedStyles
+            placeholder='Enter some text, with a # to see the issue autocompletion'
+            ref='editor'
           />
           <CompletionSuggestions
             onSearchChange={this.handleSearchChange}
             suggestions={this.state.suggestions}
-            onAddMention={this.handleAddMention}
           />
         </div>
         <input
@@ -94,7 +96,7 @@ class TextInput extends Component {
           className="logStateButton"
           type="button"
           value="Log State"
-        />
+        /> 
       </div>
     );
   }
