@@ -13,10 +13,10 @@ def exam(): return ['catscan', 'anal probe', 'needle probe']
 
 def patient(): return RegExMatch(r'\w+')
 
-# grammars = root()
-# print(grammars)
-# print(grammars[0].__name__)
-# exit(0)
+grammars = root()
+print(grammars)
+print(grammars[0]())
+exit(0)
 
 parser = ParserPython(root, memoization=True)
 

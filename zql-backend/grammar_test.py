@@ -1,21 +1,25 @@
 import grammar
 
+def test_keywords():
+    assert sorted(grammar.keywords) == ['diagnosed','on', 'performed', 'with']
+
 def test_diagnosis():
-    diagnosis_rule = grammar.rules[0]
-    actual = diagnosis_rule.parse("diagnosed pranav with cance")
-    assert actual['status'] == 'accept'
-    assert actual['properties']['disease'] == 'cance'
-    assert actual['properties']['patient'] == 'pranav'
+    sentence = 'diagnosed pranav with cance'
+    res = grammar.parse_sentence(sentence)
+    assert res['status'] == 'accept'
+    assert res['properties']['disease'] == 'cance'
+    assert res['properties']['patient'] == 'pranav'
 
 def test_examination():
-    examination_rule = grammar.rules[1]
-    raw_text = 'performed anal probe, catscan on pranav'
-    actual = examination_rule.parse(raw_text)
+    sentence = 'performed anal probe on pranav'
+    actual = grammar.parse_sentence(sentence)
+    print (actual)
     assert actual['status'] == 'accept'
-    assert actual['properties']['exams'] == ['anal probe', 'catscan']
+    assert actual['properties']['exam'] == 'anal probe'
     assert actual['properties']['patient'] == 'pranav'
 
 def test():
+    test_keywords()
     test_diagnosis()
     test_examination()
 

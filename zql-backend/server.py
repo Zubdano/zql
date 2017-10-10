@@ -13,6 +13,10 @@ def persist(raw_text, parse_result):
 def hello():
     return jsonify({'yo': 'face'})
 
+@app.route('/keywords')
+def keywords():
+    return jsonify(grammar.keywords)
+
 @app.route('/annotation/', methods=['POST', 'OPTIONS'])
 def annotation():
     """
@@ -27,13 +31,9 @@ def annotation():
         return resp
 
     data = request.json
-    print(data)
     sentence = data['raw']
     
     parsed_result = grammar.parse_sentence(sentence)
     resp = jsonify(parsed_result)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
-
-if __name__ == '__main__':
-    app.run()

@@ -6,9 +6,9 @@ def root(): return [diagnosis_grammar, examination_grammar]
 
 def diagnosis_grammar(): return 'diagnosed', patient, 'with', disease
 
-def examination_grammar(): return 'examined', patient, 'with', exam
+def examination_grammar(): return 'performed', exam, 'on', patient
 
-def disease(): return ['cancer', 'hiv', 'aids']
+def disease(): return ['cancer', 'hiv', 'aids', 'cance']
 
 def exam(): return ['catscan', 'anal probe', 'needle probe']
 
@@ -69,3 +69,19 @@ def parse_properties(grammar_node):
     for rule in grammar_node:
         if rule.rule_name != '':
             yield (rule.rule_name, str(rule))
+
+def init_keywords(root_rule):
+    print('Initializing keywords...')
+    keywords = set()
+    for base_rule in root_rule():
+        grammar = base_rule()
+        for rule in grammar:
+            if isinstance(rule, str):
+                # If a top-level rule is a string, then it must
+                # be a keyword.
+                keywords.add(rule)
+
+    print('Keywords: ', keywords)
+    return list(keywords)
+
+keywords = init_keywords(root)
