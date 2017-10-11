@@ -5,7 +5,9 @@ import {
   Modifier,
   SelectionState,
 } from 'draft-js';
+import { List, fromJS } from 'immutable';
 
+import createIssueSuggestionPlugin, { defaultSuggestionsFilter } from './plugin'
 import Requestor from './requests/requestor';
 
 const BASE_URL = 'http://localhost:5000';
@@ -15,35 +17,10 @@ const KEYWORDS_ROUTE = '/keywords/';
 const RECEIVE_ANNOTATION = 'RECEIVE_ANNOTATION';
 const RECEIVE_KEYWORDS = 'RECEIVE_KEYWORDS';
 const UPDATE_EDITOR_STATE = 'UPDATE_EDITOR_STATE';
+const UPDATE_SEARCH_VALUE = 'UPDATE_SEARCH_VALUE';
 
-// TODO: Move the entity stuff to another file
-function matchKeywordsStrategy(keywords) {
-  return (contentBlock, callback, contentState) => {
-    const text = contentBlock.getText();
-    const re = new RegExp(`\\b${keywords.join('|')}\\b`, 'ig');
-    let resArr, start;
-    while (true) {
-      resArr = re.exec(text);
-      if (resArr === null) break;
-      start = resArr.index;
-      callback(start, start + resArr[0].length);
-    }
-  }
-}
-
-function findEntitiesStrategy(type) {
-  return (contentBlock, callback, contentState) => {
-    contentBlock.findEntityRanges(
-      (character) => {
-        const entityKey = character.getEntity();
-        return (
-          entityKey !== null &&
-          contentState.getEntity(entityKey).getType() === type
-        );
-      },
-      callback
-    );
-  }
+function filterSuggestions(searchValue, allSuggestions) {
+  return defaultSuggestionsFilter(searchValue, allSuggestions);
 }
 
 const KeywordSpan = (props) => {
@@ -54,64 +31,74 @@ const KeywordSpan = (props) => {
   );
 };
 
-const AcceptedSpan = (props) => {
-  return (
-    <span data-offset-key={props.offsetkey} style={{color: 'green'}}>
-      {props.children}
-    </span>
-  )
-}
+class KeywordMatcher {
+  constructor(keywords = []) {
+    this._keywords = keywords;
+  }
 
-const initialDecorator = new CompositeDecorator([
-  {
-    strategy: findEntitiesStrategy('ACCEPTED'),
-    component: AcceptedSpan,
-  },
-]);
+  setKeywords(keywords) {
+    this._keywords = keywords;
+  }
+
+  getStrategy = (contentBlock, callback, contentState) => {
+    if (this._keywords.length > 0) {
+      const text = contentBlock.getText();
+      const re = new RegExp(`\\b${this._keywords.join('|')}\\b`, 'ig');
+      let resArr, start;
+      while (true) {
+        resArr = re.exec(text);
+        if (resArr === null) break;
+        start = resArr.index;
+        callback(start, start + resArr[0].length);
+      }
+    }
+  }
+};
+
+// Hacky way to set the keyword decorator after the fact
+const keywordMatcher = new KeywordMatcher();
+const keywordDecorator = {
+  'strategy': keywordMatcher.getStrategy,
+  'component': KeywordSpan,
+};
 
 const initialState = {
-  editorState: EditorState.createEmpty(initialDecorator),
+  editorState: EditorState.createEmpty(),
+  autocompletePlugin: createIssueSuggestionPlugin(),
+  suggestions: List(),
+  allSuggestions: List(),
+  searchValue: '',
 };
 
 // TODO: Rename
 function reducer(state = initialState, action) {
   switch (action.type) {
     case RECEIVE_ANNOTATION:
-      return state;
-    case RECEIVE_KEYWORDS:
-      const withKeywordDecorator = new CompositeDecorator([
-        {
-          'strategy': matchKeywordsStrategy(action.keywords),
-          'component': KeywordSpan,
-        }
-      ]);
-      const editorStateWithDecorator = EditorState.set(state.editorState, {
-        decorator: withKeywordDecorator,
-      });
-
+      const plainSuggestions = action.suggestions.filter(({type}) => type === 'value')
+                                                 .map(({suggest}) => suggest);
+      const allSuggestions = fromJS(plainSuggestions);
       return {
         ...state,
-        editorState: editorStateWithDecorator,
+        allSuggestions: allSuggestions,
+        suggestions: filterSuggestions(state.searchValue, allSuggestions),
       };
+    case RECEIVE_KEYWORDS:
+      keywordMatcher.setKeywords(action.keywords);
+      return state;
     case UPDATE_EDITOR_STATE:
       return {
         ...state,
         editorState: action.editorState,
       };
+    case UPDATE_SEARCH_VALUE:
+      return {
+        ...state,
+        searchValue: action.searchValue,
+        suggestions: filterSuggestions(action.searchValue, state.allSuggestions),
+      }
     default:
       return state;
   }
-}
-
-function updateEditorState(editorState) {
-  return {
-    type: UPDATE_EDITOR_STATE,
-    editorState: editorState,
-  };
-}
-
-function setEditorState(editorState) {
-  return (dispatch) => dispatch(updateEditorState(editorState));
 }
 
 function receiveAnnotation(data) {
@@ -130,6 +117,20 @@ function receiveKeywords(data) {
   }
 }
 
+function updateEditorState(editorState) {
+  return {
+    type: UPDATE_EDITOR_STATE,
+    editorState: editorState,
+  };
+}
+
+function updateSearchValue(searchValue) {
+  return {
+    type: UPDATE_SEARCH_VALUE,
+    searchValue: searchValue,
+  }
+}
+
 function fetchAnnotation(plainText) {
   const data = {raw: plainText.toLowerCase()};
   return (dispatch) => new Requestor(BASE_URL).post(ANNOTATION_ROUTE, data)
@@ -141,9 +142,19 @@ function fetchKeywords() {
     .then(json => dispatch(receiveKeywords(json)));
 }
 
+function setEditorState(editorState) {
+  return (dispatch) => dispatch(updateEditorState(editorState));
+}
+
+function setSearchValue(searchValue) {
+  return (dispatch) => dispatch(updateSearchValue(searchValue));
+}
+
 export {
   fetchAnnotation,
   fetchKeywords,
   reducer,
   setEditorState,
+  setSearchValue,
+  keywordDecorator,
 };

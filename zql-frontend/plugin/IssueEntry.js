@@ -52,8 +52,7 @@ export default class IssueEntry extends Component {
         role='option'
       >
         <span className='issueSuggestionsEntryText'>
-          <span className='bold'>{`#${this.props.completion.get('id')}`}</span>
-          <span>{` ${this.props.completion.get('subject')}`}</span>
+          <span>{` ${this.props.completion}`}</span>
         </span>
       </div>
     );

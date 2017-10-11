@@ -5,40 +5,23 @@ import Editor from 'draft-js-plugins-editor';
 import { List, fromJS } from 'immutable';
 import 'draft-js/dist/Draft.css';
 
-import createIssueSuggestionPlugin, { defaultSuggestionsFilter } from '../plugin';
+import getSearchText from '../plugin/utils/getSearchText';
 import './TextInput.scss';
 import {
   fetchAnnotation,
   fetchKeywords,
+  keywordDecorator,
   setEditorState,
+  setSearchValue,
+  setSuggestions,
 } from '../reducer';
-
-const issueSuggestionPlugin = createIssueSuggestionPlugin();
-const { CompletionSuggestions } = issueSuggestionPlugin;
-const plugins = [issueSuggestionPlugin];
-
-const suggestions = fromJS([
-  {
-    id: 1,
-    subject: 'New Cool Feature',
-  },
-  {
-    id: 2,
-    subject: 'Bug',
-  },
-  {
-    id: 3,
-    subject: 'Improve Documentation',
-  },
-]);
 
 class TextInput extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      editorState: EditorState.createEmpty(),
-      suggestions: List(),
+      editorState: props.editorState,
     };
   }
 
@@ -47,7 +30,8 @@ class TextInput extends Component {
   }
 
   handleChange = (editorState) => {
-    this.setState({editorState});
+    // idk why I need to keep this in state but the plugin uses it for some reason (???)
+    this.setState(editorState)
 
     const oldContent = this.props.editorState.getCurrentContent();
     const newContent = editorState.getCurrentContent();
@@ -55,16 +39,14 @@ class TextInput extends Component {
       // content changed, need to refetch annotations
       // TODO: only fetch annotations for block that changed
       this.props.fetchAnnotation(newContent.getPlainText(' '));
+
+      const currentSelectionState = editorState.getSelection();
+      this.props.setSearchValue(getSearchText(editorState, currentSelectionState).word);
     }
     this.props.setEditorState(editorState);
   };
 
-  handleSearchChange = ({ value }) => {
-    const searchValue = value.substring(1, value.length);
-    this.setState({
-      suggestions: defaultSuggestionsFilter(searchValue, suggestions),
-    });
-  };
+  handleSearchChange = () => {};
 
   logState = () => {
     const content = this.props.editorState.getCurrentContent();
@@ -74,13 +56,17 @@ class TextInput extends Component {
   focus = () => this.refs.editor.focus();
 
   render() {
+    const { CompletionSuggestions } = this.props.autocompletePlugin;
+    const plugins = [this.props.autocompletePlugin];
+
     return (
       <div className='textInput'>
         <div className='editor' onClick={this.focus} >
           <Editor
-            editorState={this.state.editorState}
+            editorState={this.props.editorState}
             onChange={this.handleChange}
             plugins={plugins}
+            decorators={[keywordDecorator]}
             spellCheck
             stripPastedStyles
             placeholder='Enter some text, with a # to see the issue autocompletion'
@@ -88,7 +74,7 @@ class TextInput extends Component {
           />
           <CompletionSuggestions
             onSearchChange={this.handleSearchChange}
-            suggestions={this.state.suggestions}
+            suggestions={this.props.suggestions}
           />
         </div>
         <input
@@ -106,4 +92,6 @@ export default connect(state => state, {
   fetchAnnotation,
   fetchKeywords,
   setEditorState,
+  setSearchValue,
+  setSuggestions,
 })(TextInput);

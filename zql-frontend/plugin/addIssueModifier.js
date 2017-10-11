@@ -15,7 +15,7 @@ export default (editorState, issue) => {
   let issueReplacedContent = Modifier.replaceText(
     editorState.getCurrentContent(),
     issueTextSelection,
-    `#${issue.get('id')}`,
+    issue,
   );
 
   // If the issue is inserted at the end, a space is appended right after for
