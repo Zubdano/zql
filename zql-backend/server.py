@@ -19,9 +19,8 @@ def access_control(func):
     return wrapper
 
 
-def persist(raw_text, parse_result):
-    print('Successfully parsed', raw_text, 'with rule', parse_result['rule'])
-    print('Parsed properties:', parse_result['properties'])
+def persist(sentence, parsed_result):
+    print('Parsed properties:', parsed_result['properties'])
 
 
 @app.route('/keywords/')
@@ -48,6 +47,11 @@ def annotation():
     sentence = data['raw']
 
     parsed_result = grammar.parse_sentence(sentence)
+
+    print('Parsed sentence:"{}" status:{}'.format(sentence, parsed_result['status']))
+    if parsed_result['status'] == grammar.ACCEPT:
+        persist(sentence, parsed_result)
+
     resp = jsonify(parsed_result)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp

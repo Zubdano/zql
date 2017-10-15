@@ -11,9 +11,9 @@ def diagnosis_grammar(): return 'diagnosed', patient, 'with', disease
 
 def examination_grammar(): return 'performed', exams, 'on', patient
 
-def disease(): return ['cancer', 'hiv', 'aids', 'cance']
+def disease(): return ['cancer', 'hiv', 'diabetes', 'hepatitis c', 'chicken pox', 'swine flu']
 
-def exams(): return OneOrMore(['catscan', 'anal probe', 'needle probe'], sep=',')
+def exams(): return OneOrMore(['catscan', 'mri', 'colonoscopy', 'bone marrow examination', 'eye test'], sep=',')
 
 def patient(): return RegExMatch(r'\w+')
 
