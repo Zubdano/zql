@@ -11,13 +11,45 @@
   cursor: text;
   padding: 16px;
   border-radius: 2px;
-  margin-bottom: 2em;
   box-shadow: inset 0px 1px 8px -3px #ABABAB;
   background: #fefefe;
+
+
 }
 
 .editor :global(.public-DraftEditor-content) {
   min-height: 140px;
+}
+
+.statusText {
+  margin-bottom: 2em;
+
+  color: white;
+  &-reject {
+    color: red;
+  }
+
+  &-incomplete {
+    color: white;
+  }
+
+  &-accept {
+    color: green;
+  }
+}
+
+.submitButton {
+  font-family: 'Georgia', serif;
+  font-size: 16px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  box-shadow: inset 0px 1px 8px -3px #ABABAB;
+  border-radius: 2px;
+  padding: 8px;
+
+  &:active {
+    box-shadow: inset 0px 1px 8px -3px #000000;
+  }
 }
 
 .logStateButton {

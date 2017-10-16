@@ -82,6 +82,7 @@ function reducer(state = initialState, action) {
         ...state,
         allSuggestions: allSuggestions,
         suggestions: filterSuggestions(state.searchValue, allSuggestions),
+        status: action.status,
       };
     case RECEIVE_KEYWORDS:
       keywordMatcher.setKeywords(action.keywords);

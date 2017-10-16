@@ -1,0 +1,33 @@
+.loginElement {
+  display: block;
+  margin: auto;
+}
+.loginButton {
+  font-family: 'Georgia', serif;
+  font-size: 16px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  box-shadow: inset 0px 1px 8px -3px #ABABAB;
+  border-radius: 2px;
+  padding: 8px;
+
+  &:active {
+    box-shadow: inset 0px 1px 8px -3px #000000;
+  }
+}
+
+.loginText {
+  font-family: 'Georgia', serif;
+  font-size: 16px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 2px;
+  box-shadow: inset 0px 1px 8px -3px #ABABAB;
+  background: #fefefe;
+  margin: 5px auto;
+}
+
+.loginContainer {
+  display: inline-block;
+}

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import './login.scss';
 
 class LoginScreen extends Component {
 
@@ -7,7 +8,8 @@ class LoginScreen extends Component {
 
   }
 
-  handleSubmit = () => {
+  handleSubmit = (e) => {
+    e.preventDefault()
     const usernameText = this._username.value;
     const password = this._password.value;
     if (usernameText == 'pranav' && password == 'password') {
@@ -17,21 +19,26 @@ class LoginScreen extends Component {
 
   render() {
     return (
-      <div>
+      <form action="#" className="loginContainer">
         <input
+          placeholder="Username"
+          className="loginElement loginText"
           ref={(c) => this._username = c}
           type="text"
         />
         <input
+          placeholder="Password"
+          className="loginElement loginText"
           ref={(c) => this._password = c}
           type="password"
         />
         <input
-          type="button"
-          value="Submit"
+          className="loginElement loginButton"
+          type="submit"
+          value="Log In"
           onClick={this.handleSubmit}
         />
-      </div>
+      </form>
     );
   }
 }

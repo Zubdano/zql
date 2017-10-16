@@ -77,12 +77,19 @@ class TextInput extends Component {
             suggestions={this.props.suggestions}
           />
         </div>
+        <div className={`statusText-${this.props.status || 'incomplete'}`}>{this.props.status || 'incomplete'}</div>
+        <input
+          className="submitButton"
+          type="button"
+          value="Submit"
+          disabled={this.props.status !== 'accept'}
+        />
         <input
           onClick={this.logState}
           className="logStateButton"
           type="button"
           value="Log State"
-        /> 
+        />
       </div>
     );
   }
