@@ -11,11 +11,19 @@ def diagnosis_grammar(): return 'diagnosed', patient, 'with', disease
 
 def examination_grammar(): return 'performed', exams, 'on', patient
 
-def disease(): return ['cancer', 'hiv', 'diabetes', 'hepatitis c', 'chicken pox', 'swine flu']
+def disease(): return ['cancer', 'hiv', 'diabetes', 'hepatitis-c', 'anxiety', 'depression', 'epilepsy']
 
-def exams(): return OneOrMore(['catscan', 'mri', 'colonoscopy', 'bone marrow examination', 'eye test'], sep=',')
+def exams(): return OneOrMore(['catscan', 'mri', 'colonoscopy'], sep=',')
 
 def patient(): return RegExMatch(r'\w+')
+
+# def prescription_grammar(): return 'prescribed', patient, 'with', drug
+
+# def drug(): return drug_amount, 'of', drug_name
+
+# def drug_name(): return ['ibuprofin', 'benadryl', 'aspirin']
+
+# def drug_amount(): return RegExMatch(r'[0-9]+'), 'ml'
 
 ###########
 

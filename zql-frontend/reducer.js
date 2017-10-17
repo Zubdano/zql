@@ -45,7 +45,6 @@ class KeywordMatcher {
     if (this._keywords.length > 0) {
       const text = contentBlock.getText();
       const re = new RegExp(`\\b(${this._keywords.join('|')})\\b`, 'ig');
-      console.log(re);
       let resArr, start;
       while (true) {
         resArr = re.exec(text);

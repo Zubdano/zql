@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux'
-import { convertToRaw, ContentState, EditorState } from 'draft-js';
+import { convertToRaw, ContentState, EditorState, Modifier, SelectionState } from 'draft-js';
 import Editor from 'draft-js-plugins-editor';
 import { List, fromJS } from 'immutable';
 import 'draft-js/dist/Draft.css';
@@ -53,9 +53,21 @@ class TextInput extends Component {
   handleSearchChange = () => {};
 
   handleSubmitClick = () => {
-    const clearEditorState = EditorState.push(
-      this.state.editorState, ContentState.createFromText(''));
-    this.setEditorState(clearEditorState);
+    const editorState = this.props.editorState;
+    const contentState = editorState.getCurrentContent();
+    const firstBlock = contentState.getFirstBlock();
+    const lastBlock = contentState.getLastBlock();
+    const allSelected = new SelectionState({
+      anchorKey: firstBlock.getKey(),
+      anchorOffset: 0,
+      focusKey: lastBlock.getKey(),
+      focusOffset: lastBlock.getLength(),
+      hasFocus: true,
+    });
+    const clearContentState = Modifier.removeRange(contentState, allSelected, 'backward');
+    const clearEditorState = EditorState.push(editorState, clearContentState, 'remove-range');
+    const resetEditorState = EditorState.forceSelection(clearEditorState, clearContentState.getSelectionAfter());
+    this.setEditorState(resetEditorState);
     this.props.clearAll();
   }
 
