@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux'
-import { convertToRaw, EditorState } from 'draft-js';
+import { convertToRaw, ContentState, EditorState } from 'draft-js';
 import Editor from 'draft-js-plugins-editor';
 import { List, fromJS } from 'immutable';
 import 'draft-js/dist/Draft.css';
@@ -8,6 +8,7 @@ import 'draft-js/dist/Draft.css';
 import getSearchText from '../plugin/utils/getSearchText';
 import './TextInput.scss';
 import {
+  clearAll,
   fetchAnnotation,
   fetchKeywords,
   keywordDecorator,
@@ -29,10 +30,13 @@ class TextInput extends Component {
     this.props.fetchKeywords();
   }
 
-  handleChange = (editorState) => {
+  setEditorState(editorState) {
     // idk why I need to keep this in state but the plugin uses it for some reason (???)
     this.setState(editorState)
+    this.props.setEditorState(editorState);
+  }
 
+  handleChange = (editorState) => {
     const oldContent = this.props.editorState.getCurrentContent();
     const newContent = editorState.getCurrentContent();
     if (oldContent !== newContent) {
@@ -43,10 +47,17 @@ class TextInput extends Component {
       const currentSelectionState = editorState.getSelection();
       this.props.setSearchValue(getSearchText(editorState, currentSelectionState).word);
     }
-    this.props.setEditorState(editorState);
+    this.setEditorState(editorState);
   };
 
   handleSearchChange = () => {};
+
+  handleSubmitClick = () => {
+    const clearEditorState = EditorState.push(
+      this.state.editorState, ContentState.createFromText(''));
+    this.setEditorState(clearEditorState);
+    this.props.clearAll();
+  }
 
   logState = () => {
     const content = this.props.editorState.getCurrentContent();
@@ -78,12 +89,12 @@ class TextInput extends Component {
           />
         </div>
         <div className={`statusText-${this.props.status || 'incomplete'}`}>{this.props.status || 'incomplete'}</div>
-        <input
+        <button
           className="submitButton"
           type="button"
-          value="Submit"
+          onClick={this.handleSubmitClick}
           disabled={this.props.status !== 'accept'}
-        />
+        >Submit</button>
         <input
           onClick={this.logState}
           className="logStateButton"
@@ -96,6 +107,7 @@ class TextInput extends Component {
 }
 
 export default connect(state => state, {
+  clearAll,
   fetchAnnotation,
   fetchKeywords,
   setEditorState,

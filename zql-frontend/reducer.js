@@ -18,6 +18,7 @@ const RECEIVE_ANNOTATION = 'RECEIVE_ANNOTATION';
 const RECEIVE_KEYWORDS = 'RECEIVE_KEYWORDS';
 const UPDATE_EDITOR_STATE = 'UPDATE_EDITOR_STATE';
 const UPDATE_SEARCH_VALUE = 'UPDATE_SEARCH_VALUE';
+const CLEAR_ALL = 'CLEAR_ALL';
 
 function filterSuggestions(searchValue, allSuggestions) {
   return defaultSuggestionsFilter(searchValue, allSuggestions);
@@ -69,11 +70,20 @@ const initialState = {
   suggestions: List(),
   allSuggestions: List(),
   searchValue: '',
+  status: null,
 };
 
 // TODO: Rename
 function reducer(state = initialState, action) {
   switch (action.type) {
+    case CLEAR_ALL:
+      return {
+        ...state,
+        suggestions: List(),
+        allSuggestions: List(),
+        searchValue: '',
+        status: null,
+      }
     case RECEIVE_ANNOTATION:
       const plainSuggestions = action.suggestions.filter(({type}) => type === 'value')
                                                  .map(({suggest}) => suggest);
@@ -152,7 +162,12 @@ function setSearchValue(searchValue) {
   return (dispatch) => dispatch(updateSearchValue(searchValue));
 }
 
+function clearAll() {
+  return (dispatch) => dispatch({ type: CLEAR_ALL });
+}
+
 export {
+  clearAll,
   fetchAnnotation,
   fetchKeywords,
   reducer,
