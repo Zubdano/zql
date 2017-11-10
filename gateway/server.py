@@ -6,9 +6,11 @@ app = Flask(__name__)
 
 
 # Initialize clients for all of our services.
-grammar        = AuthDecorator(HttpClient('http://google.com/'))
+# TODO: abstract away all the base URLs. These will be diff when we run on heroku.
+# TODO: ping the server.
+grammar        = AuthDecorator(HttpClient('http://127.0.0.1:2666/'))
 interpreter    = AuthDecorator(HttpClient('http://127.0.0.1:2020/'))
-postprocessing = AuthDecorator(HttpClient('http://google.com/'))
+postprocessing = AuthDecorator(HttpClient('http://127.0.0.1:2015/'))
 
 mapping = {
     # Interpreter Service forwarders
