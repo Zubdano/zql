@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom'
 
 import './App.scss';
-import TextInput from './components/TextInput';
-import LoginScreen from './components/login';
+import MainRouter from './components/MainRouter';
 
 class App extends Component {
 
@@ -19,10 +19,10 @@ class App extends Component {
         <header className="App-header">
           <h1 className="App-title">Welcome to ZQL</h1>
         </header>
-        { this.state.loggedIn ?  <TextInput /> :
-          <LoginScreen
-            onLogin={() => this.setState({loggedIn: true})}
-          /> }
+        <Link to='/'>Text Input</Link>
+        <Link to='/grammar'>Grammar Editor</Link>
+        <Link to='/events'>Events</Link>
+        <MainRouter />
       </div>
     );
   }
