@@ -13,9 +13,11 @@ import Requestor from './requests/requestor';
 const BASE_URL = 'http://localhost:5000';
 const ANNOTATION_ROUTE = '/annotation/';
 const KEYWORDS_ROUTE = '/keywords/';
+const GET_GRAMMAR_ROUTE = '/getgrammar';
 
 const RECEIVE_ANNOTATION = 'RECEIVE_ANNOTATION';
 const RECEIVE_KEYWORDS = 'RECEIVE_KEYWORDS';
+const RECEIVE_GRAMMAR = 'RECEIVE_GRAMMAR';
 const UPDATE_EDITOR_STATE = 'UPDATE_EDITOR_STATE';
 const UPDATE_SEARCH_VALUE = 'UPDATE_SEARCH_VALUE';
 const CLEAR_ALL = 'CLEAR_ALL';
@@ -70,6 +72,29 @@ const initialState = {
   allSuggestions: List(),
   searchValue: '',
   status: null,
+  inputFields: fromJS({
+    'enums': [
+      {
+        "key": "",
+        "value": [""],
+        "oneOrMore": false
+      }
+    ], 
+    'lhs': [
+      {
+        "key": "",
+        "value": [""],
+        "oneOrMore": false,
+      }
+    ],
+    'vars': [
+      {
+        "key": "",
+        "value": [""],
+        "oneOrMore": false,
+      }
+    ]
+  }),
 };
 
 // TODO: Rename
@@ -93,6 +118,11 @@ function reducer(state = initialState, action) {
         suggestions: filterSuggestions(state.searchValue, allSuggestions),
         status: action.status,
       };
+    case RECEIVE_GRAMMAR:
+      return {
+        ...state,
+        inputFields: action.inputFields,
+      }
     case RECEIVE_KEYWORDS:
       keywordMatcher.setKeywords(action.keywords);
       return state;
@@ -121,6 +151,13 @@ function receiveAnnotation(data) {
   };
 }
 
+function receiveGrammar(data) {
+  return {
+    type: RECEIVE_GRAMMAR,
+    grammar: data,
+  }
+}
+
 function receiveKeywords(data) {
   return {
     type: RECEIVE_KEYWORDS,
@@ -146,6 +183,11 @@ function fetchAnnotation(plainText) {
   const data = {raw: plainText.toLowerCase()};
   return (dispatch) => new Requestor(BASE_URL).post(ANNOTATION_ROUTE, data)
     .then(json => dispatch(receiveAnnotation(json)));
+}
+
+function fetchGrammar() {
+  return (dispatch) => new Requestor(BASE_URL).get(GET_GRAMMAR_ROUTE)
+    .then(json => dispatch(receiveGrammar(json)));
 }
 
 function fetchKeywords() {
