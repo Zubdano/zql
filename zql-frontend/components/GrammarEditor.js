@@ -1,10 +1,6 @@
 import React, { Component } from 'react';
 import { fromJS, List, Map } from 'immutable';
 
-import {
-  submitGrammar,
-} from '../reducer';
-
 let InputFieldTypeEnum = {
   VARIABLE: 'vars',
   ENUM: 'enums',
@@ -16,8 +12,6 @@ class GrammarEditor extends Component {
   constructor(props) {
     super(props);
 
-    //populate these with values from the server
-    //final result // { lhsRuleName: [{ type: ..., value: ..., moreThanOne: true/false }, ..., [type: or]], key2: [...], key3: [...]}
     this.state = {
       inputFields: fromJS({
         'enums': [
@@ -34,7 +28,6 @@ class GrammarEditor extends Component {
             "oneOrMore": false,
           }
         ],
-
         'vars': [
           {
             "key": "",

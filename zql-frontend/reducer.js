@@ -152,9 +152,22 @@ function receiveAnnotation(data) {
 }
 
 function receiveGrammar(data) {
+  if (data['vars']) {
+    return {
+      type: RECEIVE_GRAMMAR,
+      grammar: data,
+    }
+  }
+
   return {
-    type: RECEIVE_GRAMMAR,
-    grammar: data,
+    ...state,
+  }
+}
+
+function receiveGrammarValidity(data) {
+  return {
+    type: GRAMMAR_VALIDITY,
+    grammarValid: false, 
   }
 }
 
@@ -205,6 +218,16 @@ function setSearchValue(searchValue) {
 
 function clearAll() {
   return (dispatch) => dispatch({ type: CLEAR_ALL });
+}
+
+function getInputFields() {
+
+}
+
+function submitGrammar(grammar) {
+  const data = grammar.toJSON();
+  return (dispatch) => new Requestor(BASE_URL).post(CHANGE_GRAMMAR_ROUTE, data)
+    .then(json => dispatch(receiveGrammarValidity(json)));
 }
 
 export {
