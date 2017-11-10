@@ -1,6 +1,7 @@
 from collections import Iterable
 
 from arpeggio import Optional, ZeroOrMore, OneOrMore, EOF, ParserPython, NoMatch, RegExMatch
+from logger import log
 
 
 ### GRAMMAR ###
@@ -95,7 +96,7 @@ def parse_properties(grammar_node):
                 yield (rule.rule_name, str(rule))
 
 def init_keywords(root_rule):
-    print('Initializing keywords...')
+    log.info('Initializing keywords...')
     keywords = set()
     for base_rule in root_rule():
         grammar = base_rule()
@@ -105,7 +106,7 @@ def init_keywords(root_rule):
                 # be a keyword.
                 keywords.add(rule)
 
-    print('Keywords: ', keywords)
+    log.info('Keywords: ', keywords)
     return list(keywords)
 
 keywords = init_keywords(root)

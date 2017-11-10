@@ -37,7 +37,7 @@ def copy_headers():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def forward(path):
-    print('Forwarding route: %s method: %s' % (path, request.method))
+    app.logger.info('Forwarding route: %s method: %s' % (path, request.method))
 
     if path not in mapping:
         return jsonify({'error': 'Path not found in mapping'}), 401
