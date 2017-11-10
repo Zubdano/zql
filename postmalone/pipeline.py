@@ -18,13 +18,22 @@ class Processor(object):
         raise NotImplementedError()
 
 
-def run_processors(processors, data):
+class CompositeProcessor(Processor):
     """
-    Runner for a pipeline of processors. Some input data is passed into the pipeline,
-    it is then processed by each of the processors, and the output from the last
-    last processor is returned.
+    Processes a list of processors, returning the output from the last one.
+    """
 
-    @param processors: list of processor objects
-    @return: output from processors
-    """
-    return functools.reduce(lambda data, proc: proc.process(data), processors, data)
+    def __init__(self, processors):
+        """
+        @param processors: list of processors to process.
+        """
+        self.processors = processors
+
+    def process(self, data):
+        """
+        Pipes the data through the processors in order.
+
+        @param data: input data to the processor.
+        @return: output from the last processor.
+        """
+        return functools.reduce(lambda data, proc: proc.process(data), self.processors, data)

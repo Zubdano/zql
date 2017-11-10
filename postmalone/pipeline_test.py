@@ -1,6 +1,6 @@
 import unittest
 
-from .pipeline import Processor, run_processors
+from .pipeline import Processor, CompositeProcessor
 
 
 class PlusTwo(Processor):
@@ -19,4 +19,5 @@ class TestPipeline(unittest.TestCase):
 
     def test_run_processors(self):
         processors = [PlusTwo(), MinusOne()]
-        self.assertEqual(3, run_processors(processors, 2))
+        comp_proc = CompositeProcessor(processors)
+        self.assertEqual(3, comp_proc.process(2))
