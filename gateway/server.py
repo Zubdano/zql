@@ -1,8 +1,14 @@
+import os
+
 from client import AuthDecorator, HttpClient
 from flask import Flask, jsonify, request
+from flask_pymongo import PyMongo
 
 
 app = Flask(__name__)
+mongo_uri = 'mongodb://{}:{}@ds259325.mlab.com:59325/zql'
+app.config['MONGO_URI'] = mongo_uri.format(os.environ['ZQL_MONGO_USER'], os.environ['ZQL_MONGO_PASS'])
+mongo = PyMongo(app)
 
 
 # Initialize clients for all of our services.
@@ -37,7 +43,7 @@ def copy_headers():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def forward(path):
-    print('Forwarding route: %s method: %s' % (path, request.method))
+    app.logger.info('Forwarding route: %s method: %s' % (path, request.method))
 
     if path not in mapping:
         return jsonify({'error': 'Path not found in mapping'}), 401

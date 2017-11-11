@@ -1,5 +1,5 @@
-import argparse
 import logging
+import argparse
 
 from logging.handlers import RotatingFileHandler
 from server import app
@@ -17,6 +17,7 @@ if __name__ == '__main__':
         # Set up logging
         handler = RotatingFileHandler('logs/interpreter.log', maxBytes=10000, backupCount=1)
         logging.getLogger('werkzeug').addHandler(handler)
+        logging.getLogger('interpreter').addHandler(handler)
         app.logger.addHandler(handler)
 
     app.run(threaded=True, port=args.port)

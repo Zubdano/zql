@@ -20,7 +20,7 @@ def access_control(func):
 
 
 def persist(sentence, parsed_result):
-    print('Parsed properties:', parsed_result['properties'])
+    app.logger.info('Parsed properties:', parsed_result['properties'])
 
 
 @app.route('/keywords')
@@ -48,7 +48,7 @@ def annotation():
 
     parsed_result = grammar.parse_sentence(sentence)
 
-    print('Parsed sentence:"{}" status:{}'.format(sentence, parsed_result['status']))
+    app.logger.info('Parsed sentence:"{}" status:{}'.format(sentence, parsed_result['status']))
     if parsed_result['status'] == grammar.ACCEPT:
         persist(sentence, parsed_result)
 
