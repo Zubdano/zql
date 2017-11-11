@@ -1,14 +1,60 @@
+.Grammar-editor {
+  margin-top: 2em;
+}
+
 .Grammar-editor-input-key {
   margin-right: 3em;
+  border: none;
+  border-bottom: 2px solid #3ccfcf;
 }
 
 .Grammar-editor-title-span {
   margin-right: 3em;
 }
 
+.Grammar-editor-type-group {
+  margin-top: 1em;
+}
+
 .Grammar-editor-input-value {
   margin-left: 1em;
 }
 
-.Grammar-editor-add-remove-or {
+.Grammar-editor-add-or {
+  margin-left: 1em;
+}
+
+.Grammar-editor-remove-or {
+  margin-right: 1em;
+}
+
+.Grammar-editor-input-value {
+  border: none;
+  border-bottom: 2px solid #ffcd1f;
+}
+
+.Grammar-editor-add-row-button {
+  padding: 0.15rem 0.5rem;
+  margin-top: 0.5em;
+  font-weight: 200;
+  font-size: 1.125rem;
+  letter-spacing: 0.0625rem;
+  line-height: 1.222222222222222;
+  background-color: #3ccfcf;
+  color: #fff;
+  border: none;
+  border-radius: 0.2em;
+}
+
+.Grammar-editor-submit-button {
+  padding: 0.30rem 1rem;
+  margin-top: 2em;
+  font-weight: 200;
+  font-size: 1.125rem;
+  letter-spacing: 0.0625rem;
+  line-height: 1.222222222222222;
+  color: #fff;
+  background-color: #EF6530;
+  border: none;
+  border-radius: 0.2em;
 }

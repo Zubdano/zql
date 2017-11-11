@@ -105,16 +105,16 @@ class GrammarEditor extends Component {
 
   renderEnums() {
     return (
-      <div>
+      <div className="Grammar-editor-type-group">
         <div><span className='Grammar-editor-title-span'>Enum names:</span><span className='Grammar-editor-title-span'>Values:</span><span>One or more:</span></div>
         {this.state.inputFields.get('enums').map((row, index) => {
           let mappedValues = row.get('value').map((val, valIndex) => {
             return (
               <span>
                 <input className='Grammar-editor-input-value' value={val} onChange={this.inputFieldChange.bind(this, index, InputFieldTypeEnum.ENUM, "value", valIndex)} />
-                <button className='Grammar-editor-add-remove-or' onClick={this.addOr.bind(this, InputFieldTypeEnum.ENUM, index)}> OR </button>
+                <button className='Grammar-editor-add-or' onClick={this.addOr.bind(this, InputFieldTypeEnum.ENUM, index)}> OR </button>
                 {row.get('value').size > 1
-                  ? <button className='Grammar-editor-add-remove-or' onClick={this.removeOr.bind(this, InputFieldTypeEnum.ENUM, index, valIndex)}> X </button>
+                  ? <button className='Grammar-editor-remove-or' onClick={this.removeOr.bind(this, InputFieldTypeEnum.ENUM, index, valIndex)}> X </button>
                   : null
                 }
               </span>
@@ -128,23 +128,23 @@ class GrammarEditor extends Component {
             </div>
           );
         })}
-        <div><button onClick={this.addRow.bind(this, InputFieldTypeEnum.ENUM)}> Add a row </button></div>
+        <div><button className="Grammar-editor-add-row-button" onClick={this.addRow.bind(this, InputFieldTypeEnum.ENUM)}> Add a row </button></div>
       </div>
     );
   }
 
   renderLhs() {
     return (
-      <div>
+      <div className="Grammar-editor-type-group">
         <div><span className='Grammar-editor-title-span'>Rule names:</span><span>Rule definition:</span></div>
         {this.state.inputFields.get('lhs').map((row, index) => {
           let mappedValues = row.get('value').map((val, valIndex) => {
             return (
               <span>
               <input className='Grammar-editor-input-value' value={val} onChange={this.inputFieldChange.bind(this, index, InputFieldTypeEnum.LHS, "value", valIndex)} />
-              <button className='Grammar-editor-add-remove-or' onClick={this.addOr.bind(this, InputFieldTypeEnum.LHS, index)}> OR </button>
+              <button className='Grammar-editor-add-or' onClick={this.addOr.bind(this, InputFieldTypeEnum.LHS, index)}> OR </button>
               {row.get('value').size > 1
-                ? <button className='Grammar-editor-add-remove-or' onClick={this.removeOr.bind(this, InputFieldTypeEnum.LHS, index, valIndex)}> X </button>
+                ? <button className='Grammar-editor-remove-or' onClick={this.removeOr.bind(this, InputFieldTypeEnum.LHS, index, valIndex)}> X </button>
                 : null
               }
               </span>
@@ -157,14 +157,14 @@ class GrammarEditor extends Component {
             </div>
           );
         })}
-        <div><button onClick={this.addRow.bind(this, InputFieldTypeEnum.LHS)}> Add a row </button></div>
+        <div><button className="Grammar-editor-add-row-button" onClick={this.addRow.bind(this, InputFieldTypeEnum.LHS)}> Add a row </button></div>
       </div>
     );
   }
 
   renderVars() {
     return (
-      <div>
+      <div className="Grammar-editor-type-group">
         <div><span className='Grammar-editor-title-span'>Variable names:</span><span className='Grammar-editor-title-span'>Regex:</span><span>One or more:</span></div>
         {this.state.inputFields.get('vars').map((row, index) => {
           return (
@@ -175,18 +175,18 @@ class GrammarEditor extends Component {
             </div>
           );
         })}
-        <div><button onClick={this.addRow.bind(this, InputFieldTypeEnum.VARIABLE)}> Add a row </button></div>
+        <div><button className="Grammar-editor-add-row-button" onClick={this.addRow.bind(this, InputFieldTypeEnum.VARIABLE)}> Add a row </button></div>
       </div>
     );
   }
 
   render() {
     return (
-      <div>
+      <div className="Grammar-editor">
         {this.renderVars()}
         {this.renderEnums()}
         {this.renderLhs()}
-        <button onClick={this.changeGrammar.bind(this)}>Change Grammar</button>
+        <button className="Grammar-editor-submit-button" onClick={this.changeGrammar.bind(this)}>Change Grammar</button>
         {this.state.hasError
           ? <div>Erroneous input</div>
           : null
@@ -199,6 +199,7 @@ class GrammarEditor extends Component {
 export default GrammarEditor;
 
 //TODO
+//4. Escape strings
 //5. Send request
 //6. Preload grammar with current grammar
 
