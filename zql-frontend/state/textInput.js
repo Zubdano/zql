@@ -7,18 +7,18 @@ import {
 } from 'draft-js';
 import { List, fromJS } from 'immutable';
 
-import createIssueSuggestionPlugin, { defaultSuggestionsFilter } from './plugin'
-import Requestor from './requests/requestor';
+import createIssueSuggestionPlugin, { defaultSuggestionsFilter } from '../plugin'
+import Requestor from '../requests/requestor';
 
 const BASE_URL = 'http://localhost:5000';
 const ANNOTATION_ROUTE = '/annotation/';
 const KEYWORDS_ROUTE = '/keywords/';
 
-const RECEIVE_ANNOTATION = 'RECEIVE_ANNOTATION';
-const RECEIVE_KEYWORDS = 'RECEIVE_KEYWORDS';
-const UPDATE_EDITOR_STATE = 'UPDATE_EDITOR_STATE';
-const UPDATE_SEARCH_VALUE = 'UPDATE_SEARCH_VALUE';
-const CLEAR_ALL = 'CLEAR_ALL';
+const RECEIVE_ANNOTATION = 'TEXT_INPUT_RECEIVE_ANNOTATION';
+const RECEIVE_KEYWORDS = 'TEXT_INPUT_RECEIVE_KEYWORDS';
+const UPDATE_EDITOR_STATE = 'TEXT_INPUT_UPDATE_EDITOR_STATE';
+const UPDATE_SEARCH_VALUE = 'TEXT_INPUT_UPDATE_SEARCH_VALUE';
+const CLEAR_ALL = 'TEXT_INPUT_CLEAR_ALL';
 
 function filterSuggestions(searchValue, allSuggestions) {
   return defaultSuggestionsFilter(searchValue, allSuggestions);
@@ -70,10 +70,32 @@ const initialState = {
   allSuggestions: List(),
   searchValue: '',
   status: null,
+  inputFields: fromJS({
+    'enums': [
+      {
+        "key": "",
+        "value": [""],
+        "oneOrMore": false
+      }
+    ], 
+    'lhs': [
+      {
+        "key": "",
+        "value": [""],
+        "oneOrMore": false,
+      }
+    ],
+    'vars': [
+      {
+        "key": "",
+        "value": [""],
+        "oneOrMore": false,
+      }
+    ]
+  }),
 };
 
-// TODO: Rename
-function reducer(state = initialState, action) {
+function textInputReducer(state = initialState, action) {
   switch (action.type) {
     case CLEAR_ALL:
       return {
@@ -169,8 +191,8 @@ export {
   clearAll,
   fetchAnnotation,
   fetchKeywords,
-  reducer,
   setEditorState,
   setSearchValue,
+  textInputReducer,
   keywordDecorator,
 };
