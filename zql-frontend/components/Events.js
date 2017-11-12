@@ -1,46 +1,15 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import { fromJS, List, Map } from 'immutable';
 
+import { fetchEvents } from '../state/events';
 import './Events.scss';
 
 
 class Events extends Component {
-  constructor(props) {
-    super(props);
 
-    // load data
-    this.state = {
-      events: fromJS([
-        {
-          'eventId': '1',
-          'properties': {
-            'disease': ['cancer'],
-            'patient': 'pranav', 
-          }
-        },
-        {
-          'eventId': '2',
-          'properties': {
-            'exams': ['colonoscopy'], 
-            'patient': 'pranav',
-          }
-        },
-        {
-          'eventId': '3',
-          'properties': {
-            'exams': ['catscan', 'colonoscopy'], 
-            'patient': 'ross',
-          }
-        },
-        {
-          'eventId': '4',
-          'properties': {
-            'disease': ['cancer', 'aids'],
-            'patient': 'pranav', 
-          }
-        },
-      ]),
-    };
+  componentDidMount() {
+    this.props.fetchEvents();
   }
 
   renderEvent(properties) {
@@ -62,7 +31,7 @@ class Events extends Component {
   }
 
   renderEvents() {
-    const events = this.state.events.map((event) => {
+    const events = this.props.events.map((event) => {
       return (
         <div className="Events-each-event" key={event.get('eventId')}>
           <div className="Events-each-event-title">Properties:</div>
@@ -86,7 +55,4 @@ class Events extends Component {
   }
 }
 
-export default Events;
-
-//TODO
-//3. Load data from endpoint
+export default connect(({eventsReducer}) => eventsReducer, {fetchEvents})(Events);

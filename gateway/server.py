@@ -28,7 +28,7 @@ mapping = {
 
     # Postprocessing Service forwarders
     'submit': postprocessing, # TODO: wtf does this do?
-    'get_events': postprocessing,
+    'events': postprocessing,
 }
 
 
