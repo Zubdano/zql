@@ -15,7 +15,7 @@ import {
   setEditorState,
   setSearchValue,
   setSuggestions,
-} from '../reducer';
+} from '../state/textInput';
 
 class TextInput extends Component {
   constructor(props) {
@@ -118,7 +118,7 @@ class TextInput extends Component {
   }
 }
 
-export default connect(state => state, {
+export default connect(({textInputReducer}) => textInputReducer, {
   clearAll,
   fetchAnnotation,
   fetchKeywords,

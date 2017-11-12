@@ -14,14 +14,15 @@ class Auth extends Component {
   }
 
   render() {
-    return (
-      <div>
-        { this.state.loggedIn ?  <TextInput /> :
-          <LoginScreen
-            onLogin={() => this.setState({loggedIn: true})}
-          /> }
-      </div>
-    );
+    return <TextInput />;
+    // return (
+    //   <div>
+    //     { this.state.loggedIn ?  <TextInput /> :
+    //       <LoginScreen
+    //         onLogin={() => this.setState({loggedIn: true})}
+    //       /> }
+    //   </div>
+    // );
   }
 }
 

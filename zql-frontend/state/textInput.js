@@ -7,20 +7,18 @@ import {
 } from 'draft-js';
 import { List, fromJS } from 'immutable';
 
-import createIssueSuggestionPlugin, { defaultSuggestionsFilter } from './plugin'
-import Requestor from './requests/requestor';
+import createIssueSuggestionPlugin, { defaultSuggestionsFilter } from '../plugin'
+import Requestor from '../requests/requestor';
 
 const BASE_URL = 'http://localhost:5000';
 const ANNOTATION_ROUTE = '/annotation/';
 const KEYWORDS_ROUTE = '/keywords/';
-const GET_GRAMMAR_ROUTE = '/getgrammar';
 
-const RECEIVE_ANNOTATION = 'RECEIVE_ANNOTATION';
-const RECEIVE_KEYWORDS = 'RECEIVE_KEYWORDS';
-const RECEIVE_GRAMMAR = 'RECEIVE_GRAMMAR';
-const UPDATE_EDITOR_STATE = 'UPDATE_EDITOR_STATE';
-const UPDATE_SEARCH_VALUE = 'UPDATE_SEARCH_VALUE';
-const CLEAR_ALL = 'CLEAR_ALL';
+const RECEIVE_ANNOTATION = 'TEXT_INPUT_RECEIVE_ANNOTATION';
+const RECEIVE_KEYWORDS = 'TEXT_INPUT_RECEIVE_KEYWORDS';
+const UPDATE_EDITOR_STATE = 'TEXT_INPUT_UPDATE_EDITOR_STATE';
+const UPDATE_SEARCH_VALUE = 'TEXT_INPUT_UPDATE_SEARCH_VALUE';
+const CLEAR_ALL = 'TEXT_INPUT_CLEAR_ALL';
 
 function filterSuggestions(searchValue, allSuggestions) {
   return defaultSuggestionsFilter(searchValue, allSuggestions);
@@ -97,8 +95,7 @@ const initialState = {
   }),
 };
 
-// TODO: Rename
-function reducer(state = initialState, action) {
+function textInputReducer(state = initialState, action) {
   switch (action.type) {
     case CLEAR_ALL:
       return {
@@ -118,11 +115,6 @@ function reducer(state = initialState, action) {
         suggestions: filterSuggestions(state.searchValue, allSuggestions),
         status: action.status,
       };
-    case RECEIVE_GRAMMAR:
-      return {
-        ...state,
-        inputFields: action.inputFields,
-      }
     case RECEIVE_KEYWORDS:
       keywordMatcher.setKeywords(action.keywords);
       return state;
@@ -149,26 +141,6 @@ function receiveAnnotation(data) {
     suggestions: data.suggestions,
     status: data.status,
   };
-}
-
-function receiveGrammar(data) {
-  if (data['vars']) {
-    return {
-      type: RECEIVE_GRAMMAR,
-      grammar: data,
-    }
-  }
-
-  return {
-    ...state,
-  }
-}
-
-function receiveGrammarValidity(data) {
-  return {
-    type: GRAMMAR_VALIDITY,
-    grammarValid: false, 
-  }
 }
 
 function receiveKeywords(data) {
@@ -198,11 +170,6 @@ function fetchAnnotation(plainText) {
     .then(json => dispatch(receiveAnnotation(json)));
 }
 
-function fetchGrammar() {
-  return (dispatch) => new Requestor(BASE_URL).get(GET_GRAMMAR_ROUTE)
-    .then(json => dispatch(receiveGrammar(json)));
-}
-
 function fetchKeywords() {
   return (dispatch) => new Requestor(BASE_URL).get(KEYWORDS_ROUTE)
     .then(json => dispatch(receiveKeywords(json)));
@@ -220,22 +187,12 @@ function clearAll() {
   return (dispatch) => dispatch({ type: CLEAR_ALL });
 }
 
-function getInputFields() {
-
-}
-
-function submitGrammar(grammar) {
-  const data = grammar.toJSON();
-  return (dispatch) => new Requestor(BASE_URL).post(CHANGE_GRAMMAR_ROUTE, data)
-    .then(json => dispatch(receiveGrammarValidity(json)));
-}
-
 export {
   clearAll,
   fetchAnnotation,
   fetchKeywords,
-  reducer,
   setEditorState,
   setSearchValue,
+  textInputReducer,
   keywordDecorator,
 };

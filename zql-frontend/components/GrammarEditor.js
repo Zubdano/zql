@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux'
 import { fromJS, List, Map } from 'immutable';
 import './GrammarEditor.scss'
+
+import { changeInputFields, fetchGrammar, submitGrammar } from '../state/grammar';
 
 let InputFieldTypeEnum = {
   VARIABLE: 'vars',
@@ -9,105 +12,69 @@ let InputFieldTypeEnum = {
 }
 
 class GrammarEditor extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      inputFields: fromJS({
-        'enums': [
-          {
-            "key": "",
-            "value": [""],
-            "oneOrMore": false
-          }
-        ], 
-        'lhs': [
-          {
-            "key": "",
-            "value": [""],
-            "oneOrMore": false,
-          }
-        ],
-        'vars': [
-          {
-            "key": "",
-            "value": [""],
-            "oneOrMore": false,
-          }
-        ]
-      }),
-      hasError: false,
-    };
+  componentDidMount() {
+    this.props.fetchGrammar();
   }
 
   addOr(type, index) {
-    let numVals = this.state.inputFields.get(type).get(index).get("value").size;
-    let newInputFields = this.state.inputFields.setIn([type, index, "value", numVals], "");
-    this.setState({
-      inputFields: newInputFields
-    });
+    let numVals = this.props.inputFields.get(type).get(index).get("value").size;
+    let newInputFields = this.props.inputFields.setIn([type, index, "value", numVals], "");
+    this.props.changeInputFields(newInputFields);
   }
 
   addRow(type) {
-    let listSize = this.state.inputFields.get(type).size;
-    let newInputFields = this.state.inputFields.setIn([type, listSize], fromJS({"key": "", "value": [""]}));
-    this.setState({
-      inputFields: newInputFields
-    });
+    let listSize = this.props.inputFields.get(type).size;
+    let newInputFields = this.props.inputFields.setIn([type, listSize], fromJS({"key": "", "value": [""]}));
+    this.props.changeInputFields(newInputFields);
   }
 
   changeGrammar() {
     //check if all values are non empty
-    let isEmpty = false;
-    let blankInputs = this.state.inputFields.map((type) =>{
-      return type.map((row) => {
-        return row.get('value').map((value) => {
-          if (value == "" || row.get('key') == "") 
-            isEmpty = true;
-        });
-      });
-    });
-    if (isEmpty) {
-      this.setState({
-        hasError: true,
-      });
-    } else {
-      console.log('grammar submitted');
-    }
+    // let isEmpty = false;
+    // let blankInputs = this.props.inputFields.map((type) =>{
+    //   return type.map((row) => {
+    //     return row.get('value').map((value) => {
+    //       if (value == "" || row.get('key') == "") 
+    //         isEmpty = true;
+    //     });
+    //   });
+    // });
+    // if (isEmpty) {
+    //   this.setState({
+    //     hasError: true,
+    //   });
+    // } else {
+    //   console.log('grammar submitted');
+    // }
+    this.props.submitGrammar(this.props.inputFields);
   }
 
   inputFieldChange(index, type, keyOrValue, valIndex, e) {
     let newInputFields;
     if (keyOrValue == "key") {
-      newInputFields = this.state.inputFields.setIn([type, index, "key"], e.target.value);
+      newInputFields = this.props.inputFields.setIn([type, index, "key"], e.target.value);
     } else {
-      newInputFields = this.state.inputFields.setIn([type, index, "value", valIndex], e.target.value);
+      newInputFields = this.props.inputFields.setIn([type, index, "value", valIndex], e.target.value);
     }
-    this.setState({
-      inputFields: newInputFields,
-    });
+    this.props.changeInputFields(newInputFields);
   }
 
   oneOrMore(type, index, e) {
-    let newInputFields = this.state.inputFields.setIn([type, index, "oneOrMore"], e.target.checked);
-    this.setState({
-      inputFields: newInputFields,
-    });
+    let newInputFields = this.props.inputFields.setIn([type, index, "oneOrMore"], e.target.checked);
+    this.props.changeInputFields(newInputFields);
   }
 
   removeOr(type, index, valIndex) {
-    let newValueRow = this.state.inputFields.get(type).get(index).get("value").delete(valIndex);
-    let newInputFields = this.state.inputFields.setIn([type, index, "value"], newValueRow);
-    this.setState({
-      inputFields: newInputFields,
-    });
+    let newValueRow = this.props.inputFields.get(type).get(index).get("value").delete(valIndex);
+    let newInputFields = this.props.inputFields.setIn([type, index, "value"], newValueRow);
+    this.props.changeInputFields(newInputFields);
   }
 
   renderEnums() {
     return (
       <div className="Grammar-editor-type-group">
         <div><span className='Grammar-editor-title-span'>Enum names:</span><span className='Grammar-editor-title-span'>Values:</span><span>One or more:</span></div>
-        {this.state.inputFields.get('enums').map((row, index) => {
+        {this.props.inputFields.get('enums').map((row, index) => {
           let mappedValues = row.get('value').map((val, valIndex) => {
             return (
               <span>
@@ -137,7 +104,7 @@ class GrammarEditor extends Component {
     return (
       <div className="Grammar-editor-type-group">
         <div><span className='Grammar-editor-title-span'>Rule names:</span><span>Rule definition:</span></div>
-        {this.state.inputFields.get('lhs').map((row, index) => {
+        {this.props.inputFields.get('lhs').map((row, index) => {
           let mappedValues = row.get('value').map((val, valIndex) => {
             return (
               <span>
@@ -166,7 +133,7 @@ class GrammarEditor extends Component {
     return (
       <div className="Grammar-editor-type-group">
         <div><span className='Grammar-editor-title-span'>Variable names:</span><span className='Grammar-editor-title-span'>Regex:</span><span>One or more:</span></div>
-        {this.state.inputFields.get('vars').map((row, index) => {
+        {this.props.inputFields.get('vars').map((row, index) => {
           return (
             <div>
               <input className='Grammar-editor-input-key' value={row.get('key')} onChange={this.inputFieldChange.bind(this, index, InputFieldTypeEnum.VARIABLE, "key", -1)} />
@@ -187,7 +154,7 @@ class GrammarEditor extends Component {
         {this.renderEnums()}
         {this.renderLhs()}
         <button className="Grammar-editor-submit-button" onClick={this.changeGrammar.bind(this)}>Change Grammar</button>
-        {this.state.hasError
+        {this.props.hasError
           ? <div>Erroneous input</div>
           : null
         }
@@ -196,10 +163,13 @@ class GrammarEditor extends Component {
   }
 }
 
-export default GrammarEditor;
+export default connect(({grammarReducer}) => grammarReducer, {
+  changeInputFields,
+  fetchGrammar,
+  submitGrammar,
+})(GrammarEditor);
 
 //TODO
 //4. Escape strings
 //5. Send request
 //6. Preload grammar with current grammar
-

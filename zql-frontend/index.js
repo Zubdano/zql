@@ -1,15 +1,19 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux';
-import { createStore, applyMiddleware } from 'redux';
+import { combineReducers, createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import { BrowserRouter } from 'react-router-dom';
 
 import './index.scss';
 import App from './App';
-import { reducer } from './reducer';
+import { textInputReducer } from './state/textInput';
+import { grammarReducer } from './state/grammar';
 
-let store = createStore(reducer, applyMiddleware(thunk));
+const store = createStore(combineReducers({
+  textInputReducer,
+  grammarReducer,
+}), applyMiddleware(thunk));
 
 ReactDOM.render(
 	<BrowserRouter>
