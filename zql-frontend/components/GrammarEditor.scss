@@ -35,12 +35,25 @@
 
 .Grammar-editor-add-row-button {
   padding: 0.15rem 0.5rem;
-  margin-top: 0.5em;
+  margin-top: 1em;
   font-weight: 200;
   font-size: 1.125rem;
   letter-spacing: 0.0625rem;
   line-height: 1.222222222222222;
   background-color: #3ccfcf;
+  color: #fff;
+  border: none;
+  border-radius: 0.2em;
+}
+
+.Grammar-editor-remove-row-button {
+  padding: 0.15rem 0.5rem;
+  margin-top: 1em;
+  font-weight: 200;
+  font-size: 1.125rem;
+  letter-spacing: 0.0625rem;
+  line-height: 1.222222222222222;
+  background-color: #3ccfff;
   color: #fff;
   border: none;
   border-radius: 0.2em;

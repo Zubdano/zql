@@ -12,29 +12,7 @@ const RECEIVE_GRAMMAR_VALIDITY = 'GRAMMAR_RECEIVE_GRAMMAR_VALIDITY';
 const INPUT_FIELDS_CHANGED = 'GRAMMAR_INPUT_FIELDS_CHANGED';
 
 const initialState = {
-  inputFields: fromJS({
-    'enums': [
-      {
-        "key": "",
-        "value": [""],
-        "oneOrMore": false
-      }
-    ], 
-    'lhs': [
-      {
-        "key": "",
-        "value": [""],
-        "oneOrMore": false,
-      }
-    ],
-    'vars': [
-      {
-        "key": "",
-        "value": [""],
-        "oneOrMore": false,
-      }
-    ]
-  }),
+  inputFields: fromJS({}),
   hasError: false,
 };
 
@@ -66,7 +44,7 @@ function receiveGrammar(data) {
 function receiveGrammarValidity(data) {
   // TODO: error message
   return {
-    type: GRAMMAR_VALIDITY,
+    type: RECEIVE_GRAMMAR_VALIDITY,
     grammarValid: data.grammarValid, 
   };
 }
@@ -79,6 +57,10 @@ function grammarChanged(grammar) {
 }
 
 function fetchGrammar() {
+  // return {
+  //   type: RECEIVE_GRAMMAR,
+  //   grammar: fromJS([]),
+  // };
   return (dispatch) => new Requestor(BASE_URL).get(GET_GRAMMAR_ROUTE)
     .then(json => dispatch(receiveGrammar(json)));
 }

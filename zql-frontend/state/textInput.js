@@ -70,29 +70,7 @@ const initialState = {
   allSuggestions: List(),
   searchValue: '',
   status: null,
-  inputFields: fromJS({
-    'enums': [
-      {
-        "key": "",
-        "value": [""],
-        "oneOrMore": false
-      }
-    ], 
-    'lhs': [
-      {
-        "key": "",
-        "value": [""],
-        "oneOrMore": false,
-      }
-    ],
-    'vars': [
-      {
-        "key": "",
-        "value": [""],
-        "oneOrMore": false,
-      }
-    ]
-  }),
+  inputFields: fromJS([]),
 };
 
 function textInputReducer(state = initialState, action) {
