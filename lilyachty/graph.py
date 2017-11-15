@@ -1,6 +1,3 @@
-from collections import defaultdict
-
-
 class CycleFound(Exception):
     def __init__(self, msg):
         super().__init__()
@@ -16,19 +13,20 @@ def add_edges(graph, rule, values, rules):
         if nested(value):
             add_edges(graph, rule, value, rules)
         else:
-            if value in graph and graph[value]['type'] == 'rule':
+            if value in rules:
                 graph[rule].append(value)
 
 
 def construct_graph(grammar):
-    graph = defaultdict(list)
-    rules = filter(lambda lhs: grammar[lhs]['type'] == 'rule', dict.keys())
+    graph = {}
+    rules = filter(lambda lhs: grammar[lhs]['type'] == 'rule', grammar.keys())
     rules = set(rules)
 
     for rule in rules:
+        graph[rule] = []
         add_edges(graph, rule, grammar[rule]['value'], rules)
 
-    return graph
+    return dict(graph)
 
 
 def dfs(v, graph, visited, ordering, current):
