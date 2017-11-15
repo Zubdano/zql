@@ -11,8 +11,8 @@ from handler import (
 
 app = Flask(__name__)
 app.config['MONGO_DBNAME'] = 'postmalone'
-# mongo_uri = 'mongodb://{}:{}@ds259325.mlab.com:59325/zql'
-# app.config['MONGO_URI'] = mongo_uri.format(os.environ['ZQL_MONGO_USER'], os.environ['ZQL_MONGO_PASS'])
+mongo_uri = 'mongodb://{}:{}@ds259325.mlab.com:59325/zql'
+app.config['MONGO_URI'] = mongo_uri.format(os.environ['ZQL_MONGO_USER'], os.environ['ZQL_MONGO_PASS'])
 mongo = PyMongo(app)
 RQ(app)
 

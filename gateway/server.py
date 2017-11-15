@@ -24,7 +24,7 @@ mapping = {
     'keywords': interpreter, # TODO: move this to grammar service
 
     # Grammar Service forwarders
-    'update_grammar': grammar,
+    'grammar': grammar,
 
     # Postprocessing Service forwarders
     'submit': postprocessing, # TODO: wtf does this do?
