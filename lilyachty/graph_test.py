@@ -3,32 +3,48 @@ from graph import verify_structure, construct_graph
 
 def integration_test():
     grammar = {
-	"root": {
-            'type': "rule",
+    	'root': {
+            'type': 'rule',
             'oneOrMore': False,
-            'value': [["diagnosed_rule"], ["ayylmfao"]]
+            'value': [['diagnosis'], ['examination']]
         },
-	"diagnosed_rule": {
-            'type': "rule",
+    	'diagnosis': {
+            'type': 'rule',
             'oneOrMore': False,
-            'value': ["diagnosed", "patient", "with", "disease"]
+            'value': ['diagnosed', 'patient', 'with', 'disease']
         },
-	"patient": {
-            'type': "variable",
+        'examination': {
+            'type': 'rule',
             'oneOrMore': False,
-            'value': "[a-zA-Z]+"
+            'value': ['performed', 'exams', 'on', 'patient']
         },
-	"disease": {
-            'type': "rule",
+    	'patient': {
+            'type': 'variable',
             'oneOrMore': False,
-            'value': [["cancer"], ["diabetes"], ["aids"]]
+            'value': '[a-zA-Z]+'
+        },
+    	'disease': {
+            'type': 'rule',
+            'oneOrMore': False,
+            'value': [['cancer'], ['diabetes'], ['aids']]
+        },
+        'exams': {
+            'type': 'rule',
+            'oneOrMore': True,
+            'value': [['colonoscopy'], ['mri'], ['catscan']]
         }
     }
 
     graph = construct_graph(grammar)
-    print(graph)
+    assert len(graph) == 5
+    assert graph['root'] == ['diagnosis', 'examination']
+    assert graph['diagnosis'] == ['disease']
+    assert graph['examination'] == ['exams']
+    assert graph['disease'] == []
+    assert graph['exams'] == []
+
     valid, reason = verify_structure(graph)
-    print(valid, reason)
+    assert valid
 
 
 def test_verify_structure():
