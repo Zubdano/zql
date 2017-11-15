@@ -1,5 +1,5 @@
 from graph import iter_rhs, verify_structure, construct_graph
-
+from parse import generate_keywords_and_variables
 
 def test_iter_rhs():
     rhs = [[['a'], [[['b']]], 'c'], ['d']]
@@ -19,12 +19,12 @@ def test_iter_rhs():
 
 def integration_test():
     grammar = {
-    	'root': {
+        'root': {
             'type': 'rule',
             'oneOrMore': False,
             'value': [['diagnosis'], ['examination']]
         },
-    	'diagnosis': {
+        'diagnosis': {
             'type': 'rule',
             'oneOrMore': False,
             'value': ['diagnosed', 'patient', 'with', 'disease']
@@ -34,12 +34,12 @@ def integration_test():
             'oneOrMore': False,
             'value': ['performed', 'exams', 'on', 'patient']
         },
-    	'patient': {
+        'patient': {
             'type': 'variable',
             'oneOrMore': False,
             'value': '[a-zA-Z]+'
         },
-    	'disease': {
+        'disease': {
             'type': 'rule',
             'oneOrMore': False,
             'value': [['cancer'], ['diabetes'], ['aids']]
@@ -61,6 +61,11 @@ def integration_test():
 
     valid, reason = verify_structure(graph)
     assert valid
+
+    keywords, variables = generate_keywords_and_variables(grammar)
+    assert 'with' in keywords
+    assert 'mri' in keywords
+    assert variables == ['patient']
 
 
 def test_verify_structure():

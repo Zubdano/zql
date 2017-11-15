@@ -45,6 +45,7 @@ def iter_rhs(values):
         else:
             yield value
 
+
 ###
 ### PRIVATE HELPER FUNCTIONS
 ###
