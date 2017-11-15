@@ -24,7 +24,8 @@ mapping = {
     'keywords': interpreter, # TODO: move this to grammar service
 
     # Grammar Service forwarders
-    'update_grammar': grammar,
+    'grammar': grammar,
+    'grammars': grammar,
 
     # Postprocessing Service forwarders
     'submit': postprocessing, # TODO: wtf does this do?
@@ -45,9 +46,10 @@ def copy_headers():
 def forward(path):
     app.logger.info('Forwarding route: %s method: %s' % (path, request.method))
 
-    if path not in mapping:
+    forwarder = path.split('/')[0]
+    if forwarder not in mapping:
         return jsonify({'error': 'Path not found in mapping'}), 401
 
-    res, code = mapping[path].make_request(
+    res, code = mapping[forwarder].make_request(
             path, request.method, request.data, copy_headers())
     return jsonify(res), code

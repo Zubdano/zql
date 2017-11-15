@@ -71,8 +71,8 @@ class AuthDecorator(ClientDecorator):
         if not user:
             raise Exception('Could not find user with token {}'.format(token))
 
-        headers['user.id'] = str(user['_id'])
-        headers['user.permission'] = user['permission']
+        headers['User.Id'] = str(user['_id'])
+        headers['User.Permission'] = user['permission']
 
         return self._next.make_request(route, method, data, headers)
 
