@@ -8,6 +8,14 @@
   border-bottom: 2px solid #3ccfcf;
 }
 
+.Grammar-editor-title-div {
+  margin-bottom: 1em;
+}
+
+.Grammar-editor-row {
+  margin-top: 1em;
+}
+
 .Grammar-editor-title-span {
   margin-right: 3em;
 }
@@ -47,12 +55,13 @@
 }
 
 .Grammar-editor-remove-row-button {
-  padding: 0.15rem 0.5rem;
+  padding: 0.10rem 0.4rem;
   margin-top: 1em;
+  margin-left: 0.5em;
   font-weight: 200;
   font-size: 1.125rem;
-  letter-spacing: 0.0625rem;
-  line-height: 1.222222222222222;
+  letter-spacing: 0.0325rem;
+  line-height: 1.0;
   background-color: #3ccfff;
   color: #fff;
   border: none;
@@ -70,4 +79,22 @@
   background-color: #EF6530;
   border: none;
   border-radius: 0.2em;
+}
+
+.Grammar-editor-entered-word {
+  margin-left: 0.2em;
+  border: 1px solid black;
+  padding: 0.1em;
+}
+
+.Grammar-editor-entered-or {
+  margin-left: 0.5em;
+}
+
+input:focus {
+  outline: none;
+}
+
+.Grammar-editor-remove-word {
+  color: red;
 }
