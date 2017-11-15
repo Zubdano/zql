@@ -86,6 +86,9 @@ class EventState(object):
     def with_occurrences(self, occurrences):
         return EventState(self.events, self.occurrences + occurrences)
 
+    def __eq__(self, other):
+        return self.events == other.events and self.occurrences == other.occurrences
+
 
 class MongoProcessor(Processor):
     """
@@ -187,7 +190,7 @@ class MarkovProcessor(MongoProcessor):
         if best_prediction is not None and best_prediction[0] > self.THRESHOLD:
             events = list(self.db.events.find({'key': best_prediction[1]}).limit(1))
             # TODO: Log not found
-            # TODO: Check if an event like this already exists
+            print(events)
             if events:
                 return state.with_events([{
                     'user_id': state.events[0]['user_id'],
@@ -195,8 +198,6 @@ class MarkovProcessor(MongoProcessor):
                     'predicted': True,
                     'prob': best_prediction[0],
                 }])
-
-            # TODO: Remove all other predicted events
 
         return state
 
@@ -219,6 +220,7 @@ class PrepareEventsProcessor(Processor):
 class CleanupPredictedProcessor(MongoProcessor):
     """
     Cleans up predicted events.
+    TODO: Write unit tests
     """
 
     def process(self, state):
