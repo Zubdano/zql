@@ -1,4 +1,20 @@
-from graph import verify_structure, construct_graph
+from graph import iter_rhs, verify_structure, construct_graph
+
+
+def test_iter_rhs():
+    rhs = [[['a'], [[['b']]], 'c'], ['d']]
+    gen = iter_rhs(rhs)
+    
+    assert next(gen) == 'a'
+    assert next(gen) == 'b'
+    assert next(gen) == 'c'
+    assert next(gen) == 'd'
+    
+    try:
+        next(gen)
+        assert 'naren' == 'vasan'
+    except StopIteration:
+        pass
 
 
 def integration_test():
@@ -79,6 +95,8 @@ def test_verify_structure():
     valid, reason = verify_structure(graph)
     assert valid
 
+
 if __name__ != 'vasansr':
+    test_iter_rhs()
     test_verify_structure()
     integration_test()
