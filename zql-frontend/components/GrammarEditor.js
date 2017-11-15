@@ -1,12 +1,3 @@
-/* 
- * This is the grammar editor component. Users define grammars using this component. 
- * Each lhs has an rhs. The properties of the rhs are multiplicity (oneOrMore) and the rules 'value'
- * We allow rhs to be or'd together to form an lhs - this is done through the button that calls addOr
- * Before submitting the grammar, we convert to a form that is best for the backend to use.
- * This involves finding which lhs rules are variables and which are not - done by checking which values
- * are arrays of length 1 AND consist of a valid regex
-*/
-
 import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import { fromJS, List, Map } from 'immutable';
@@ -19,7 +10,7 @@ const InputFieldTypeEnum = {
   LHS: 'rule',
 }
 
-const emptyRow = {key: "", oneOrMore: false, value: [""]};
+const emptyRow = {key: "", oneOrMore: false, value: [[""]]};
 
 class GrammarEditor extends Component {
   // fetch initial grammar / use default value if none exists
@@ -32,9 +23,9 @@ class GrammarEditor extends Component {
   }
 
   // add a new or value to rhs of given lhs index
-  addOr(index) {
-    let numVals = this.props.inputFields.get(index).get('value').size;
-    let newInputFields = this.props.inputFields.setIn([index, 'value', numVals], "");
+  addOr(ruleIndex, e) {
+    let numVals = this.props.inputFields.get(ruleIndex).get('value').size;
+    let newInputFields = this.props.inputFields.setIn([ruleIndex, "value", numVals], fromJS([""]));
     this.props.changeInputFields(newInputFields);
   }
 
@@ -45,26 +36,12 @@ class GrammarEditor extends Component {
     this.props.changeInputFields(newInputFields);
   }
 
-  // check that there are no illicit chars/empty strings on lhs
-  isGrammarValid() {
-    const illegalChars = /[!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?]/;
-    let invalidRules = this.props.inputFields.filter((rule) => {
-      let emptyValue = rule.get('value').filter((val) => {
-        return val == '';
-      });
-      return rule.get('key').match(illegalChars) || rule.get('key') == '' || emptyValue.size > 0;
-    });
-
-    if (invalidRules.size > 0) return false;
-    return true;
-  }
-
   // if more than one value or rhs is an lhs rule then or value is not a valid regex then lhs is rule else variable
   getType(row) {
     let type = InputFieldTypeEnum.VAR;
-    if (row.get('value').size > 1) return InputFieldTypeEnum.LHS;
+    if (row.get('value').size > 1 || row.get('value').get(0).size > 1) return InputFieldTypeEnum.LHS;
 
-    let value = row.get('value').get(0);
+    let value = row.get('value').get(0).get(0);
 
     let inLHS = this.props.inputFields.filter((rule) => {
       return rule.get('key') == value;
@@ -83,34 +60,53 @@ class GrammarEditor extends Component {
 
   getSubmissionGrammar() {
     let submissionGrammar = fromJS({});
-
+    //remove all empty values
     this.props.inputFields.map((row) => {
       let type = this.getType(row);
-      submissionGrammar = submissionGrammar.set(row.get('key'), fromJS({ type: type, oneOrMore: row.get('oneOrMore'), value: row.get('value') }))
+      let numTokensInLastRow = row.get('value').last().size;
+      let newValues = row.get('value');
+
+      if (row.get('value').last().last() == "") {
+        newValues = row.setIn(['value', row.get('value').size - 1], row.get('value').last().pop()).get('value');
+      }
+      submissionGrammar = submissionGrammar.set(row.get('key'), fromJS({ type: type, oneOrMore: row.get('oneOrMore'), value: newValues }))
     });
     return submissionGrammar;
   }
 
   // send the grammar to the backend
   changeGrammar() {
-    if (!this.isGrammarValid()) {
-      // change isError state
-
-      return;
-    }
     let dataToSubmit = this.getSubmissionGrammar();
-    debugger;
-    this.props.submitGrammar(this.props.inputFields);
+    dataToSubmit = fromJS({grammar: dataToSubmit});
+    this.props.submitGrammar(dataToSubmit.toJS());
+  }
+
+  detectKeyPress(index, valIndex, e) {
+      if (e.key == 'Enter') {
+        this.inputEnter(index, valIndex, e);
+        e.preventDefault();
+      } else if (e.key == '|') {
+        e.preventDefault();
+        this.addOr(index, e);
+      }
   }
 
   // change input as user types in an input field
   inputFieldChange(index, keyOrValue, valIndex, e) {
     let newInputFields;
+
     if (keyOrValue == "key") {
       newInputFields = this.props.inputFields.setIn([index, "key"], e.target.value);
     } else {
-      newInputFields = this.props.inputFields.setIn([index, "value", valIndex], e.target.value);
+      let valSize = this.props.inputFields.get(index).get('value').get(valIndex).size;
+      newInputFields = this.props.inputFields.setIn([index, "value", valIndex, valSize - 1], e.target.value);
     }
+    this.props.changeInputFields(newInputFields);
+  }
+
+  inputEnter(ruleIndex, valIndex, e) {
+    let valSize = this.props.inputFields.get(ruleIndex).get('value').get(valIndex).size;
+    let newInputFields = this.props.inputFields.setIn([ruleIndex, "value", valIndex, valSize], "");
     this.props.changeInputFields(newInputFields);
   }
 
@@ -120,50 +116,62 @@ class GrammarEditor extends Component {
     this.props.changeInputFields(newInputFields);
   }
 
-  // remove an or rule from rhs
-  removeOr(index, valIndex) {
-    let newValueRow = this.props.inputFields.get(index).get('value').delete(valIndex);
-    let newInputFields = this.props.inputFields.setIn([index, 'value'], newValueRow);
+  // remove the last rule
+  removeRow(removeIndex) {
+    let newInputFields = this.props.inputFields.delete(removeIndex);
     this.props.changeInputFields(newInputFields);
   }
 
-  // remove the last rule
-  removeRow() {
-    let removeIndex = this.props.inputFields.size - 1;
-    let newInputFields = this.props.inputFields.delete(removeIndex);
+  // remove a word from rhs
+  removeWord(ruleIndex, valIndex, wordIndex) {
+    let newValueRow = this.props.inputFields.get(ruleIndex).get('value').get(valIndex).delete(wordIndex);
+    let newInputFields = this.props.inputFields.setIn([ruleIndex, 'value', valIndex], newValueRow);
+
+    // bug when you have an or and you remove most recent or'd values
+    if (newValueRow.size == 0 || (newValueRow.size == 1 && newValueRow.get(0) == "")) {
+      newValueRow = this.props.inputFields.get(ruleIndex).get('value').delete(valIndex);
+      newInputFields = this.props.inputFields.setIn([ruleIndex, 'value'], newValueRow);
+    }
+
     this.props.changeInputFields(newInputFields);
   }
 
   renderLhs() {
     return (
       <div className="Grammar-editor-type-group">
-        <div><span className='Grammar-editor-title-span'>Rule names:</span><span>Rule definition:</span></div>
+        <div className='Grammar-editor-title-div'><span className='Grammar-editor-title-span'>Rule names:</span><span>Rule definition:</span></div>
         {this.props.inputFields.valueSeq().map((row, index) => { // map through list of lhs rules
-          let mappedValues = row.get('value').map((val, valIndex) => { // map through list of rhs values
+          let numVals = row.get('value').size;
+          let mappedValues = row.get('value').map((value, valIndex) => { // map through list of rhs values
+            let val = value;
+            if (valIndex == numVals - 1) 
+              val = value.slice(0, value.size - 1);
             return (
-              <span key={valIndex}> 
-              <input className='Grammar-editor-input-value' value={val} onChange={this.inputFieldChange.bind(this, index, "value", valIndex)} />
-              <button className='Grammar-editor-add-or' onClick={this.addOr.bind(this, index)}> OR </button>
-              {row.get('value').size > 1
-                ? <button className='Grammar-editor-remove-or' onClick={this.removeOr.bind(this, index, valIndex)}> X </button>
-                : null
-              }
+              <span key={valIndex}>
+                {val.map((token, tokenIndex) => {
+                  return (
+                    <span className="Grammar-editor-entered-word" key={tokenIndex}>{token}<span className='Grammar-editor-remove-word' onClick={this.removeWord.bind(this, index, valIndex, tokenIndex)}> x </span></span>
+                  );
+                })}
+                {valIndex < numVals - 1 
+                  ? <span className="Grammar-editor-entered-or"> OR </span>
+                  : null
+                }
               </span>
             );
           });
+          let val = row.get('value').last().last();
           return (
-            <div key={index}>
+            <div className="Grammar-editor-row" key={index}>
               <input className='Grammar-editor-input-key' value={row.get('key')} onChange={this.inputFieldChange.bind(this, index, "key", -1)} />
-                {mappedValues}
+              {mappedValues}
+              <input className='Grammar-editor-input-value' value={val} onKeyPress={this.detectKeyPress.bind(this, index, numVals - 1)} onChange={this.inputFieldChange.bind(this, index, "value", numVals - 1)} />
               <input type="checkbox" onChange={this.oneOrMore.bind(this, index)} />
+              <button className="Grammar-editor-remove-row-button" onClick={this.removeRow.bind(this, index)}> Remove row </button>
             </div>
           );
         })}
         <div><button className="Grammar-editor-add-row-button" onClick={this.addRow.bind(this)}> Add a row </button></div>
-        {this.props.inputFields.size > 1
-          ? <div><button className="Grammar-editor-remove-row-button" onClick={this.removeRow.bind(this)}> Remove a row </button></div>
-          : null
-        }
       </div>
     );
   }
@@ -189,6 +197,4 @@ export default connect(({grammarReducer}) => grammarReducer, {
 })(GrammarEditor);
 
 //TODO
-//3. In submit get which are vars and which are not - try catch new regexp
-//4. Get which are lhs rules
-//5. All else are hardcoded strings
+//7. Submit grammar
