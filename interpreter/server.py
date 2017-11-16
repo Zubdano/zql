@@ -7,44 +7,22 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-# TBH idk why we need this, but doesn't work without it when testing on localhost
-# For now, just add this to POST request handlers
-def access_control(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        resp = func(*args, **kwargs)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        return resp
-
-    return wrapper
-
-
 def persist(sentence, parsed_result):
     app.logger.info('Parsed properties:', parsed_result['properties'])
 
-
-@app.route('/interpret/keywords')
-@access_control
+@app.route('/keywords')
 def keywords():
     root = generate.get_grammar_root()
     keywords = grammar.get_keywords(root)
     return jsonify(keywords)
 
 
-@app.route('/interpret/annotation', methods=['POST', 'OPTIONS'])
-@access_control
+@app.route('/interpret', methods=['POST', 'OPTIONS'])
 def annotation():
     """
     Takes in an object representing a sentence and returns annotations for the words in that
     sentence.
     """
-    if request.method == 'OPTIONS':
-        resp = Flask.make_default_options_response(app)
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-        resp.headers['Content-Type'] = 'application/json'
-        return resp
-
     data = request.json
     sentence = data['raw']
 
