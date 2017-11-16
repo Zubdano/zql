@@ -104,3 +104,6 @@ ENV/
 
 # Local log files stored here.
 logs/
+
+# Interpreter generated grammar file
+interpreter/gen/*
