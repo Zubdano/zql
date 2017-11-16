@@ -23,7 +23,7 @@ def persist(sentence, parsed_result):
     app.logger.info('Parsed properties:', parsed_result['properties'])
 
 
-@app.route('/keywords')
+@app.route('/interpret/keywords')
 @access_control
 def keywords():
     root = generate.get_grammar_root()
@@ -31,7 +31,7 @@ def keywords():
     return jsonify(keywords)
 
 
-@app.route('/annotation', methods=['POST', 'OPTIONS'])
+@app.route('/interpret/annotation', methods=['POST', 'OPTIONS'])
 @access_control
 def annotation():
     """
