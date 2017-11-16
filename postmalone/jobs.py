@@ -1,3 +1,6 @@
+import os
+from urllib.parse import quote_plus
+
 from flask_rq import job
 from pymongo import MongoClient
 
@@ -13,7 +16,9 @@ from pipeline import (
 	RecentEventsProcessor,
 )
 
-db = MongoClient().postmalone
+mongo_uri = 'mongodb://{}:{}@ds259325.mlab.com:59325/zql'
+mongo_uri = mongo_uri.format(os.environ['ZQL_MONGO_USER'], os.environ['ZQL_MONGO_PASS'])
+db = MongoClient(mongo_uri).zql
 
 EVENTS_WINDOW = 3
 

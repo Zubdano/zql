@@ -10,9 +10,8 @@ from errors import APIError
 
 
 app = Flask(__name__)
-app.config['MONGO_DBNAME'] = 'gateway'
-# mongo_uri = 'mongodb://{}:{}@ds259325.mlab.com:59325/zql'
-# app.config['MONGO_URI'] = mongo_uri.format(os.environ['ZQL_MONGO_USER'], os.environ['ZQL_MONGO_PASS'])
+mongo_uri = 'mongodb://{}:{}@ds259325.mlab.com:59325/zql'
+app.config['MONGO_URI'] = mongo_uri.format(os.environ['ZQL_MONGO_USER'], os.environ['ZQL_MONGO_PASS'])
 mongo = PyMongo(app)
 
 
@@ -105,7 +104,7 @@ def forward(path):
 
     forwarder = path.split('/')[0]
     if forwarder not in mapping:
-        return jsonify({'error': 'Path not found in mapping'}), 401
+        raise APIError('Path not found in mapping', 401)
 
     res, code = mapping[forwarder].make_request(
             path, request.method, request.data, copy_headers())

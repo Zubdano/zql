@@ -21,7 +21,7 @@ RQ(app)
 # each handler.
 HANDLER_MAP = {
     '/event': [EventPushHandler()],
-    '/events/<user_id>': [GetEventsHandler(mongo)],
+    '/events': [GetEventsHandler(mongo)],
 }
 
 

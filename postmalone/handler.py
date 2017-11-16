@@ -68,11 +68,16 @@ class GetEventsHandler(BaseHandler):
         """
         self.mongo = mongo
 
-    def handle(self, user_id):
+    def handle(self):
         """
-        Fetches events for the given user id.
+        Fetches events for the user id given in the headers.
         """
         # TODO: Handle errors
+        user_id = request.headers.get('User.Username')
+
+        if user_id is None:
+            return jsonify([])
+
         cursor = self.mongo.db.events.find({'user_id': user_id})
         res = []
         for event in cursor:

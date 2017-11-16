@@ -33,7 +33,7 @@ class Events extends Component {
   renderEvents() {
     const events = this.props.events.map((event) => {
       return (
-        <div className="Events-each-event" key={event.get('eventId')}>
+        <div className="Events-each-event" key={event.get('_id')}>
           <div className="Events-each-event-title">Properties:</div>
           {this.renderEvent(event.get('properties'))}
         </div>
