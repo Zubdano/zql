@@ -1,9 +1,13 @@
+//Assumptions
+// - user will not enter something like: patient - [a-zA-Z] asdf
+// - user will enter the key before a value
+
 import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import { fromJS, List, Map } from 'immutable';
 import './GrammarEditor.scss'
 
-import { changeInputFields, fetchGrammar, submitGrammar } from '../state/grammar';
+import { changeInputFields, changeRules, changeVariables, fetchGrammar, submitGrammar } from '../state/grammar';
 
 const InputFieldTypeEnum = {
   VAR: 'variable',
@@ -39,6 +43,11 @@ class GrammarEditor extends Component {
   // if more than one value or rhs is an lhs rule then or value is not a valid regex then lhs is rule else variable
   getType(row) {
     let type = InputFieldTypeEnum.VAR;
+
+    if (row.get('value').get(0).last() == "") {
+      row = row.setIn(['value', 0], row.get('value').get(0).delete(1));
+    }
+
     if (row.get('value').size > 1 || row.get('value').get(0).size > 1) return InputFieldTypeEnum.LHS;
 
     let value = row.get('value').get(0).get(0);
@@ -78,6 +87,7 @@ class GrammarEditor extends Component {
   changeGrammar() {
     let dataToSubmit = this.getSubmissionGrammar();
     dataToSubmit = fromJS({grammar: dataToSubmit});
+    debugger;
     this.props.submitGrammar(dataToSubmit.toJS());
   }
 
@@ -91,23 +101,76 @@ class GrammarEditor extends Component {
       }
   }
 
+  getValueOfVariable(variable) {
+    let rule = this.props.inputFields.find((row) => {
+      return row.get('key') == variable;
+    });
+
+    return rule.get('value').first().first();
+  }
+
   // change input as user types in an input field
   inputFieldChange(index, keyOrValue, valIndex, e) {
     let newInputFields;
 
     if (keyOrValue == "key") {
+      let oldKey = this.props.inputFields.get(index).get('key');
+
+      // remove old value from rules and insert new value
+      if (this.props.rules.includes(oldKey)) {
+        let newRulesSet = this.props.rules.delete(oldKey);
+        newRulesSet = newRulesSet.add(e.target.value);
+        this.props.changeRules(newRulesSet); 
+      }
+
+      // remove old value from variables and insert new value
+      if (this.props.variables.includes(oldKey)) {
+        let newVariablesSet = this.props.variables.delete(oldKey);
+        newVariablesSet = newVariablesSet.add(e.target.value);
+        this.props.changeVariables(newVariablesSet); 
+      }
+      
       newInputFields = this.props.inputFields.setIn([index, "key"], e.target.value);
     } else {
       let valSize = this.props.inputFields.get(index).get('value').get(valIndex).size;
       newInputFields = this.props.inputFields.setIn([index, "value", valIndex, valSize - 1], e.target.value);
     }
+
     this.props.changeInputFields(newInputFields);
   }
 
   inputEnter(ruleIndex, valIndex, e) {
     let valSize = this.props.inputFields.get(ruleIndex).get('value').get(valIndex).size;
+
     let newInputFields = this.props.inputFields.setIn([ruleIndex, "value", valIndex, valSize], "");
+    let newVariablesSet = this.props.variables;
+    let newRulesSet = this.props.rules;
+    // if first val and isRegex add to list of variables
+    if (this.getType(newInputFields.get(ruleIndex)) == InputFieldTypeEnum.VAR) {
+      newVariablesSet = this.props.variables.add(newInputFields.get(ruleIndex).get('key'));
+    } else {
+      let keyVal = newInputFields.get(ruleIndex).get('key');
+
+      // if key was variable, it is now a rule.
+      if (this.props.variables.includes(keyVal)) {
+        newVariablesSet = this.props.variables.delete(keyVal);
+      }
+
+      newRulesSet = this.props.rules.add(keyVal);
+    }
+
+    // probably a better way to do this but too tired
+    let newKey = newInputFields.get(ruleIndex).get('key');
+    newInputFields.map((row) => {
+      if (this.props.variables.includes(row.get('key')) && this.getValueOfVariable(row.get('key')) == newKey && row.get('key') != newKey) {
+        newVariablesSet = newVariablesSet.delete(row.get('key'));
+        newRulesSet = newRulesSet.add(row.get('key'));
+      }
+    });
+    
+    this.props.changeRules(newRulesSet);
     this.props.changeInputFields(newInputFields);
+    this.props.changeVariables(newVariablesSet);
   }
 
   // change multiplicity of a rule
@@ -130,7 +193,22 @@ class GrammarEditor extends Component {
     // bug when you have an or and you remove most recent or'd values
     if (newValueRow.size == 0 || (newValueRow.size == 1 && newValueRow.get(0) == "")) {
       newValueRow = this.props.inputFields.get(ruleIndex).get('value').delete(valIndex);
-      newInputFields = this.props.inputFields.setIn([ruleIndex, 'value'], newValueRow);
+      if (newValueRow.size == 0 && this.props.inputFields.get(ruleIndex).get('value').size == 1) {
+        newValueRow = newValueRow.push("");
+        newInputFields = this.props.inputFields.setIn([ruleIndex, 'value', valIndex], newValueRow);
+      } else {
+        newInputFields = this.props.inputFields.setIn([ruleIndex, 'value'], newValueRow);
+      }
+    }
+
+    // if regex removed from variable, remove variable from list of variables
+    let keyOfRemovedWord = this.props.inputFields.get(ruleIndex).get('key')
+    if (this.props.variables.includes(keyOfRemovedWord)) {
+      let newVariablesSet = this.props.variables.delete(keyOfRemovedWord);
+      this.props.changeVariables(newVariablesSet);
+    } else {
+      let newRulesSet = this.props.rules.delete(keyOfRemovedWord);
+      this.props.changeRules(newRulesSet);
     }
 
     this.props.changeInputFields(newInputFields);
@@ -192,9 +270,11 @@ class GrammarEditor extends Component {
 
 export default connect(({grammarReducer}) => grammarReducer, {
   changeInputFields,
+  changeRules,
+  changeVariables,
   fetchGrammar,
   submitGrammar,
 })(GrammarEditor);
 
 //TODO
-//7. Submit grammar
+//5. If delete a variable regex - delete from variables array
