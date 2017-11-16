@@ -1,14 +1,16 @@
 import { BASE_URL } from './constants';
 import requestor from './requestor';
 
+const LOGIN_ROUTE = '/login';
+
 // Class to handle authenticating the user
 class Auth {
   login(email, pass, callback) {
     if (localStorage.token) {
-      if (callback) callback(true);
+    if (callback) callback(true);
       return;
     }
-    new Requestor()
+    new Requestor(BASE_URL).post
     apiClient.login(email, pass, data => {
       localStorage.token = data.api_key;
       if (callback) callback(true);
@@ -27,9 +29,9 @@ class Auth {
     return localStorage.token;
   }
 
-    get loggedIn() {
-      return !!localStorage.token;
-    }
+  get loggedIn() {
+    return !!localStorage.token;
+  }
 }
 
 // Auth singleton

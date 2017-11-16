@@ -1,8 +1,8 @@
 import { fromJS } from 'immutable';
 
 import Requestor from '../requests/requestor';
+import { BASE_URL } from '../requests/constants';
 
-const BASE_URL = 'http://localhost:5000';
 const GET_EVENTS_ROUTE = '/events';
 
 const RECEIVE_EVENTS = 'EVENTS_RECEIVE_EVENTS';
@@ -44,7 +44,7 @@ function eventsReducer(state = initialState, action) {
   switch (action.type) {
     case RECEIVE_EVENTS:
       return {
-        ...state,
+      ...state,
         events: action.events,
       };
     default:
