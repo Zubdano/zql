@@ -9,8 +9,8 @@ import { List, fromJS } from 'immutable';
 
 import createIssueSuggestionPlugin, { defaultSuggestionsFilter } from '../plugin'
 import Requestor from '../requests/requestor';
+import { BASE_URL } from '../requests/constants';
 
-const BASE_URL = 'http://localhost:5000';
 const ANNOTATION_ROUTE = '/annotation/';
 const KEYWORDS_ROUTE = '/keywords/';
 

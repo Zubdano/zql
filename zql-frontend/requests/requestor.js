@@ -1,9 +1,22 @@
 import fetch from 'isomorphic-fetch';
 
+import { auth } from './auth';
+
 class Requestor {
 
   constructor(serverUrl) {
     this.serverUrl = serverUrl;
+  }
+
+  _makeRequest(route, fetchParams) {
+    if (auth.loggedIn) {
+      fetchParams.headers.append('Token', auth.currentUser.token);
+    }
+
+    return fetch(route, fetchParams).then((response) => {
+      if (!response.ok) throw Error(response.json().then().error)
+      return response.json()
+    });
   }
 
   get(endpoint) {
@@ -13,7 +26,8 @@ class Requestor {
         'Content-Type': 'text/plain',
       }),
     };
-    return fetch(this.serverUrl + endpoint, fetchParams).then((response) => response.json());
+
+    return this._makeRequest(this.serverUrl + endpoint, fetchParams)
   }
 
   post(endpoint, data) {
@@ -24,7 +38,7 @@ class Requestor {
         'Content-Type': 'application/json',
       }),
     };
-    return fetch(this.serverUrl + endpoint, fetchParams).then((response) => response.json());
+    return this._makeRequest(this.serverUrl + endpoint, fetchParams)
   }
 };
 

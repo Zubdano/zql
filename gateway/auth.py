@@ -14,11 +14,11 @@ class Permissions(object):
     ALL = frozenset([EDITOR, WRITER, READER])
 
 
-def get_user_by_api_key(mongo, api_key):
+def get_user_by_token(mongo, token):
     """
     Returns the user dictionary with the given API key or None if one doesn't exist.
     """
-    return mongo.db.users.find_one({'api_key': api_key})
+    return mongo.db.users.find_one({'token': token})
 
 
 def login_user(mongo, username, password):
@@ -30,7 +30,7 @@ def login_user(mongo, username, password):
         return {
             'username': user['username'],
             'permission': user['permission'],
-            'api_key': user['api_key'],
+            'token': user['token'],
         }
 
     return None
@@ -46,22 +46,22 @@ def create_user(mongo, username, password, permission):
 
     # Generate token for user
     while True:
-        api_key = uuid.uuid4().hex[:24]
-        if not mongo.db.users.find_one({'api_key': api_key}):
+        token = uuid.uuid4().hex[:24]
+        if not mongo.db.users.find_one({'token': token}):
             break
 
     user = {
         'username': username,
         'password': _hash_password(password),
         'permission': permission,
-        'api_key': api_key,
+        'token': token,
     }
     mongo.db.users.insert_one(user)
 
     return {
         'username': user['username'],
         'permission': user['permission'],
-        'api_key': user['api_key'],
+        'token': user['token'],
     }
 
 

@@ -2,10 +2,10 @@ from functools import wraps
 import os
 
 from client import AuthDecorator, HttpClient
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, g
 from flask_pymongo import PyMongo
 
-from auth import create_user, get_user_by_api_key, login_user
+from auth import create_user, get_user_by_token, login_user
 from errors import APIError
 
 
@@ -46,25 +46,25 @@ def copy_headers():
     return headers
 
 
-def auth(f):
-    """
-    Decorator for endpoints that require authentication and authorization.
-    """
-    @wraps(f)
-    def auth_user_and_proceed(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not auth.username:
-            raise APIError('You must provide your API key.', 409)
+# TBH idk why we need this, but doesn't work without it when testing on localhost
+# For now, just add this to POST request handlers
+def access_control(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if request.method == 'OPTIONS':
+            resp = Flask.make_default_options_response(app)
+            resp.headers['Access-Control-Allow-Headers'] = 'Content-Type,token'
+            resp.headers['Content-Type'] = 'application/json'
+        else:
+            resp = func(*args, **kwargs)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
 
-        g.current_user = get_user_by_api_key(mongo, user.username)
-        if not g.current_user:
-            raise APIError('Could not authenticate user.', 409)
-
-        return f(*args, **kwargs)
-    return auth_user_and_proceed
+    return wrapper
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST', 'OPTIONS'])
+@access_control
 def login():
     username = request.json.get('username')
     password = request.json.get('password')
@@ -79,7 +79,8 @@ def login():
     return jsonify(user)
 
 
-@app.route('/create_user', methods=['POST'])
+@app.route('/create_user', methods=['POST', 'OPTIONS'])
+@access_control
 def new_user():
     username = request.json.get('username')
     password = request.json.get('password')
@@ -97,8 +98,8 @@ def new_user():
 
 
 @app.route('/', defaults={'path': ''})
-@app.route('/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
-@auth
+@app.route('/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+@access_control
 def forward(path):
     app.logger.info('Forwarding route: %s method: %s' % (path, request.method))
 
@@ -108,7 +109,11 @@ def forward(path):
 
     res, code = mapping[forwarder].make_request(
             path, request.method, request.data, copy_headers())
-    return jsonify(res), code
+
+    resp = jsonify(res)
+    print(res, code)
+    resp.status_code = code
+    return resp
 
 
 @app.errorhandler(APIError)
