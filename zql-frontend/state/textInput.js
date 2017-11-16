@@ -11,8 +11,8 @@ import createIssueSuggestionPlugin, { defaultSuggestionsFilter } from '../plugin
 import Requestor from '../requests/requestor';
 import { BASE_URL } from '../requests/constants';
 
-const ANNOTATION_ROUTE = '/annotation/';
-const KEYWORDS_ROUTE = '/keywords/';
+const ANNOTATION_ROUTE = '/interpret';
+const KEYWORDS_ROUTE = '/keywords';
 
 const RECEIVE_ANNOTATION = 'TEXT_INPUT_RECEIVE_ANNOTATION';
 const RECEIVE_KEYWORDS = 'TEXT_INPUT_RECEIVE_KEYWORDS';

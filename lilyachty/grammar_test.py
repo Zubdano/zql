@@ -1,5 +1,17 @@
 from graph import iter_rhs, verify_structure, construct_graph
 from parse import generate_keywords_and_variables
+from hashing import stringify_grammar
+
+
+def test_stringify_grammar():
+    grammar = {
+        'a': {'type': '1', 'oneOrMore': '2', 'value': '3'},
+        'z': {'type': '4', 'oneOrMore': '5', 'value': '6'},
+        'c': {'type': '7', 'oneOrMore': '8', 'value': '9'},
+    }
+    sgram = stringify_grammar(grammar)
+    assert sgram == '[["a", "1", "2", "3"], ["c", "7", "8", "9"], ["z", "4", "5", "6"]]'
+
 
 def test_iter_rhs():
     rhs = [[['a'], [[['b']]], 'c'], ['d']]
@@ -59,7 +71,7 @@ def integration_test():
     assert graph['disease'] == []
     assert graph['exams'] == []
 
-    valid, reason = verify_structure(graph)
+    valid, reason, rules = verify_structure(graph)
     assert valid
 
     keywords, variables = generate_keywords_and_variables(grammar)
@@ -75,7 +87,7 @@ def test_verify_structure():
         'c': ['a'],
         'd': [],
     }
-    valid, reason = verify_structure(graph)
+    valid, reason, rules = verify_structure(graph)
     assert not valid
     assert reason.startswith('Cycle')
 
@@ -87,7 +99,7 @@ def test_verify_structure():
         'e': [],
         'f': [],
     }
-    valid, reason = verify_structure(graph)
+    valid, reason, rules = verify_structure(graph)
     assert not valid
     assert reason.startswith('Multiple')
 
@@ -97,11 +109,13 @@ def test_verify_structure():
         'c': ['d'],
         'd': [],
     }
-    valid, reason = verify_structure(graph)
+    valid, reason, rules = verify_structure(graph)
     assert valid
+    assert rules == ['a', 'b', 'c', 'd']
 
 
 if __name__ != 'vasansr':
+    test_stringify_grammar()
     test_iter_rhs()
     test_verify_structure()
     integration_test()

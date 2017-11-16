@@ -5,6 +5,7 @@ from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from graph import construct_graph, verify_structure
 from parse import generate_keywords_and_variables
+from hashing import hash_grammar
 from persist import persist_grammar
 
 
@@ -40,15 +41,19 @@ def update_grammar(grammar_id):
     graph = construct_graph(grammar)
     
     # Verify the structural integrity of the graph.
-    valid, reason = verify_structure(graph)
+    # Rules are returned in topological order of dependency.
+    valid, reason, rules = verify_structure(graph)
     if not valid:
         return jsonify({'error': reason}), 400
 
     # Parse to generate the keywords and variables from the grammar.
     keywords, variables = generate_keywords_and_variables(grammar)
 
+    # Hash the grammar deterministically
+    hsh = hash_grammar(grammar)
+
     # Attempt to persist the grammar to mongo.
-    success, reason = persist_grammar(grammar_id, grammar, keywords, variables)
+    success, reason = persist_grammar(grammar_id, grammar, hsh, rules, keywords, variables)
     if not success:
         return jsonify({'error': reason}), 400
 
