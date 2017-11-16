@@ -25,7 +25,7 @@ def verify_structure(graph):
     try:
         ordering = topological_sort(graph)
     except CycleFound as e:
-        return False, 'Cycle found including rule {}'.format(e.msg)
+        return False, 'Cycle found with rules {}'.format(', '.join(e.cycle))
 
     # Now, run a DFS to get order from a root node.
     ordering2 = []
@@ -52,9 +52,9 @@ def iter_rhs(values):
 
 
 class CycleFound(Exception):
-    def __init__(self, msg):
+    def __init__(self, cycle):
         super().__init__()
-        self.msg = msg
+        self.cycle = cycle
 
 
 def nested(obj):
@@ -63,7 +63,7 @@ def nested(obj):
 
 def dfs(v, graph, visited, ordering, current):
     if v in current:
-        raise CycleFound(v)
+        raise CycleFound(current)
 
     current.add(v)
 

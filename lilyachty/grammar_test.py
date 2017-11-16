@@ -70,7 +70,7 @@ def integration_test():
 
 def test_verify_structure():
     graph = {
-        'a': ['b', 'c'],
+        'a': ['b', 'c', 'd'],
         'b': ['c', 'd'],
         'c': ['a'],
         'd': [],
