@@ -71,7 +71,7 @@ def integration_test():
     assert graph['disease'] == []
     assert graph['exams'] == []
 
-    valid, reason = verify_structure(graph)
+    valid, reason, rules = verify_structure(graph)
     assert valid
 
     keywords, variables = generate_keywords_and_variables(grammar)
@@ -87,7 +87,7 @@ def test_verify_structure():
         'c': ['a'],
         'd': [],
     }
-    valid, reason = verify_structure(graph)
+    valid, reason, rules = verify_structure(graph)
     assert not valid
     assert reason.startswith('Cycle')
 
@@ -99,7 +99,7 @@ def test_verify_structure():
         'e': [],
         'f': [],
     }
-    valid, reason = verify_structure(graph)
+    valid, reason, rules = verify_structure(graph)
     assert not valid
     assert reason.startswith('Multiple')
 
@@ -109,8 +109,9 @@ def test_verify_structure():
         'c': ['d'],
         'd': [],
     }
-    valid, reason = verify_structure(graph)
+    valid, reason, rules = verify_structure(graph)
     assert valid
+    assert rules == ['a', 'b', 'c', 'd']
 
 
 if __name__ != 'vasansr':
