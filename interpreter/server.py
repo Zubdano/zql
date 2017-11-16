@@ -1,11 +1,14 @@
 import functools
 import json
 import grammar
+import requests
 
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
+GRAMMAR_ID = "5a0bc90e734d1d08bf70e0ff"
+GRAMMAR_URL = "http://localhost:2666/grammar/{}".format(GRAMMAR_ID)
 
 # TBH idk why we need this, but doesn't work without it when testing on localhost
 # For now, just add this to POST request handlers
@@ -26,7 +29,9 @@ def persist(sentence, parsed_result):
 @app.route('/keywords')
 @access_control
 def keywords():
-    return jsonify(grammar.keywords)
+    res = requests.get(GRAMMAR_URL)
+    keywords = grammar.generate_file_from_data(res.json())
+    return jsonify(keywords)
 
 
 @app.route('/annotation', methods=['POST', 'OPTIONS'])
@@ -45,6 +50,9 @@ def annotation():
 
     data = request.json
     sentence = data['raw']
+
+    res = requests.get(GRAMMAR_URL)
+    grammar.generate_file_from_data(res.json())
 
     parsed_result = grammar.parse_sentence(sentence)
 

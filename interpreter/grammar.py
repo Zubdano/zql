@@ -3,35 +3,61 @@ from collections import Iterable
 from arpeggio import Optional, ZeroOrMore, OneOrMore, EOF, ParserPython, NoMatch, RegExMatch
 from logger import log
 
-
-### GRAMMAR ###
-
-def root(): return [diagnosis_grammar, examination_grammar]
-
-def diagnosis_grammar(): return 'diagnosed', patient, 'with', disease
-
-def examination_grammar(): return 'performed', exams, 'on', patient
-
-def disease(): return ['cancer', 'hiv', 'diabetes', 'hepatitis-c', 'anxiety', 'depression', 'epilepsy']
-
-def exams(): return OneOrMore(['catscan', 'mri', 'colonoscopy'], sep=',')
-
-def patient(): return RegExMatch(r'\w+')
-
-# def prescription_grammar(): return 'prescribed', patient, 'with', drug
-
-# def drug(): return drug_amount, 'of', drug_name
-
-# def drug_name(): return ['ibuprofin', 'benadryl', 'aspirin']
-
-# def drug_amount(): return RegExMatch(r'[0-9]+'), 'ml'
-
-###########
+import os
 
 # STATUSES
 ACCEPT = 'accept'
 REJECT = 'reject'
 INCOMPLETE = 'incomplete'
+
+GRAMMAR_FILE_NAME = "__init__.py"
+GRAMMAR_FOLDER_NAME = "gen"
+
+root = None
+def generate_file_from_data(data):
+    keywords = set(data['keywords'])
+    variables = set(data['variables'])
+
+    grammar_folder_path = os.path.dirname(__file__) + "/" + GRAMMAR_FOLDER_NAME
+    if not os.path.isdir(grammar_folder_path):
+        os.mkdir(grammar_folder_path)
+
+    grammar_file_path = grammar_folder_path + "/" + GRAMMAR_FILE_NAME
+    with open(grammar_file_path, "w+") as grammar_file:
+        grammar_file.write("# AUTOMATICALLY GENERATED\n")
+        grammar_file.write("from arpeggio import Optional, ZeroOrMore, OneOrMore, EOF, ParserPython, NoMatch, RegExMatch\n\n")
+        for rulename, details in data['structure'].items():
+            grammar_file.write("def {}(): ".format(rulename))
+            if details['type'] == 'variable':
+                grammar_file.write("return RegExMatch(r'{}')".format(details['value']))
+            elif details['type'] == 'rule':
+                grammar_file.write("return ")
+                quoted_values = []
+                if isinstance(details['value'][0], list):
+                    values = [value[0] for value in details['value']]
+
+                    if details['oneOrMore']:
+                        grammar_file.write("OneOrMore({}, sep=',')".format(values))
+                    else:
+                        quoted_values = []
+                        for value in values:
+                            if value in data['structure'].keys():
+                                quoted_values.append(value)
+                            else:
+                                quoted_values.append("'{}'".format(value))
+                        grammar_file.write("[{}]".format(", ".join(quoted_values)))
+                else:
+                    for value in details['value']:
+                        if value in keywords:
+                            quoted_values.append('"{}"'.format(value))
+                        else:
+                            quoted_values.append(value)
+                    grammar_file.write(", ".join(quoted_values))
+
+            grammar_file.write('\n\n')
+
+    root = __import__(GRAMMAR_FOLDER_NAME).root
+    return init_keywords(root)
 
 def parse_sentence(sentence):
     parser = ParserPython(root)
@@ -108,5 +134,3 @@ def init_keywords(root_rule):
 
     log.info('Keywords: ', keywords)
     return list(keywords)
-
-keywords = init_keywords(root)
