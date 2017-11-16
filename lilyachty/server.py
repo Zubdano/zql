@@ -41,7 +41,8 @@ def update_grammar(grammar_id):
     graph = construct_graph(grammar)
     
     # Verify the structural integrity of the graph.
-    valid, reason = verify_structure(graph)
+    # Rules are returned in topological order of dependency.
+    valid, reason, rules = verify_structure(graph)
     if not valid:
         return jsonify({'error': reason}), 400
 
@@ -52,7 +53,7 @@ def update_grammar(grammar_id):
     hsh = hash_grammar(grammar)
 
     # Attempt to persist the grammar to mongo.
-    success, reason = persist_grammar(grammar_id, grammar, hsh, keywords, variables)
+    success, reason = persist_grammar(grammar_id, grammar, hsh, rules, keywords, variables)
     if not success:
         return jsonify({'error': reason}), 400
 

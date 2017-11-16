@@ -25,16 +25,16 @@ def verify_structure(graph):
     try:
         ordering = topological_sort(graph)
     except CycleFound as e:
-        return False, 'Cycle found with rules {}'.format(', '.join(e.cycle))
+        return False, 'Cycle found with rules {}'.format(', '.join(e.cycle)), None
 
     # Now, run a DFS to get order from a root node.
     ordering2 = []
     dfs(ordering[0], graph, set(), ordering2, set())
 
     if len(ordering) != len(ordering2):
-        return False, 'Multiple root nodes'
+        return False, 'Multiple root nodes', ordering
     
-    return True, ''
+    return True, '', ordering
 
 
 def iter_rhs(values):

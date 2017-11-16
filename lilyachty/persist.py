@@ -3,10 +3,11 @@ import server
 from bson.objectid import ObjectId
 
 
-def persist_grammar(grammar_id, grammar, hsh, keywords, variables):
+def persist_grammar(grammar_id, grammar, hsh, rules, keywords, variables):
     doc = {
         'structure': grammar,
         'hash': hsh,
+        'rules': rules,
         'keywords': keywords,
         'variables': variables
     }
