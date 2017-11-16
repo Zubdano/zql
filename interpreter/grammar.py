@@ -10,9 +10,6 @@ ACCEPT = 'accept'
 REJECT = 'reject'
 INCOMPLETE = 'incomplete'
 
-GRAMMAR_FILE_NAME = "__init__.py"
-GRAMMAR_FOLDER_NAME = "gen"
-
 def parse_sentence(sentence, root_rule):
     parser = ParserPython(root_rule)
     res = {
