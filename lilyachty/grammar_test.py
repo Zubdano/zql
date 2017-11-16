@@ -1,5 +1,17 @@
 from graph import iter_rhs, verify_structure, construct_graph
 from parse import generate_keywords_and_variables
+from hashing import stringify_grammar
+
+
+def test_stringify_grammar():
+    grammar = {
+        'a': {'type': '1', 'oneOrMore': '2', 'value': '3'},
+        'z': {'type': '4', 'oneOrMore': '5', 'value': '6'},
+        'c': {'type': '7', 'oneOrMore': '8', 'value': '9'},
+    }
+    sgram = stringify_grammar(grammar)
+    assert sgram == '[["a", "1", "2", "3"], ["c", "7", "8", "9"], ["z", "4", "5", "6"]]'
+
 
 def test_iter_rhs():
     rhs = [[['a'], [[['b']]], 'c'], ['d']]
@@ -102,6 +114,7 @@ def test_verify_structure():
 
 
 if __name__ != 'vasansr':
+    test_stringify_grammar()
     test_iter_rhs()
     test_verify_structure()
     integration_test()
