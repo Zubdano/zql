@@ -1,8 +1,8 @@
 import { fromJS } from 'immutable';
 
 import Requestor from '../requests/requestor';
+import { BASE_URL } from '../requests/auth';
 
-const BASE_URL = 'http://localhost:2666';
 // TODO: change these to the legit ones
 const GET_GRAMMAR_ROUTE = '/grammar';
 const CHANGE_GRAMMAR_ROUTE = '/changegrammar';
