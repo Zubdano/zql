@@ -13,7 +13,9 @@ import { BASE_URL } from '../requests/constants';
 
 const ANNOTATION_ROUTE = '/interpret';
 const KEYWORDS_ROUTE = '/keywords';
+const EVENT_ROUTE = '/event';
 
+const RECEIVE_EVENT_RESULT = 'TEXT_INPUT_RECEIVE_EVENT_RESULT';
 const RECEIVE_ANNOTATION = 'TEXT_INPUT_RECEIVE_ANNOTATION';
 const RECEIVE_KEYWORDS = 'TEXT_INPUT_RECEIVE_KEYWORDS';
 const UPDATE_EDITOR_STATE = 'TEXT_INPUT_UPDATE_EDITOR_STATE';
@@ -107,8 +109,20 @@ function textInputReducer(state = initialState, action) {
         searchValue: action.searchValue,
         suggestions: filterSuggestions(action.searchValue, state.allSuggestions),
       }
+    case RECEIVE_EVENT_RESULT:
+      return {
+        ...state,
+        success: action.success,
+     };
     default:
       return state;
+  }
+}
+
+function receiveEventResult(data) {
+  return {
+    type: RECEIVE_EVENT_RESULT,
+    success: data.success,
   }
 }
 
@@ -142,6 +156,12 @@ function updateSearchValue(searchValue) {
   }
 }
 
+function submitEvent(plainText) {
+  const data = {raw: plainText.toLowerCase()};
+  return (dispatch) => new Requestor(BASE_URL).post(EVENT_ROUTE, data)
+    .then(json => dispatch(receiveEventResult(json)));
+}
+
 function fetchAnnotation(plainText) {
   const data = {raw: plainText.toLowerCase()};
   return (dispatch) => new Requestor(BASE_URL).post(ANNOTATION_ROUTE, data)
@@ -167,6 +187,7 @@ function clearAll() {
 
 export {
   clearAll,
+  submitEvent,
   fetchAnnotation,
   fetchKeywords,
   setEditorState,

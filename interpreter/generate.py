@@ -1,4 +1,5 @@
 import requests
+import importlib
 import os
 
 GRAMMAR_FILE_NAME = "__init__.py"
@@ -8,7 +9,8 @@ GRAMMAR_ID = "5a0bc90e734d1d08bf70e0ff"
 GRAMMAR_URL = "http://localhost:2666/grammar/{}".format(GRAMMAR_ID)
 
 current_hash = ''
-root = None
+primary_key = None
+gen = None
 
 def fix_list(l, keywords):
     result = []
@@ -40,9 +42,10 @@ def verify_hash(data):
     return False
 
 def generate_file_from_data(data):
-    global root
+    global gen, primary_key
     if verify_hash(data):
-        return root
+        importlib.reload(gen)
+        return gen.root
 
     keywords = set(data['keywords'])
     variables = set(data['variables'])
@@ -68,10 +71,14 @@ def generate_file_from_data(data):
                 else:
                     grammar_file.write(values)
 
+            if details['isPrimary']:
+                primary_key = rulename
+
             grammar_file.write('\n\n')
 
-    root = __import__(GRAMMAR_FOLDER_NAME).root
-    return root
+    gen = importlib.import_module(GRAMMAR_FOLDER_NAME)
+    importlib.reload(gen)
+    return gen.root
 
 def get_grammar_root():
     # TODO: Verify hashes or update

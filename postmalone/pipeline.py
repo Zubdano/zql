@@ -5,6 +5,7 @@ import functools
 import itertools
 import json
 import hashlib
+import requests
 
 import pymongo
 
@@ -89,6 +90,16 @@ class EventState(object):
     def __eq__(self, other):
         return self.events == other.events and self.occurrences == other.occurrences
 
+class InterpreterProcessor(Processor):
+    """
+    Gets event data from the interpreter service
+    """
+
+    INTERPRETER_URL = 'http://localhost:2020/interpret'
+
+    def process(self, data):
+        res = requests.post(self.INTERPRETER_URL, json={'raw': data})
+        return EventState([res.json()])
 
 class MongoProcessor(Processor):
     """

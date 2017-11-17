@@ -7,6 +7,7 @@
     "draft-js-plugins-editor": "^1.1.0",
     "immutable": ">=3.7.6",
     "materialize-css": "^0.100.2",
+    "moment": "^2.19.2",
     "prop-types": "^15.6.0",
     "react": "15.6.0",
     "react-addons-update": "^15.6.2",

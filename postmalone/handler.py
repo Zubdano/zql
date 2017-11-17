@@ -2,6 +2,7 @@ import abc
 
 from flask import request, jsonify
 from redis import RedisError
+import pymongo
 
 from jobs import process_event
 
@@ -46,7 +47,7 @@ class EventPushHandler(BaseHandler):
         """
         Pushes event to the task queue.
         """
-        event = request.json
+        event = request.json['raw']
         try:
             process_event.delay(event)
             return jsonify({'success': True})
@@ -78,10 +79,16 @@ class GetEventsHandler(BaseHandler):
         if user_id is None:
             return jsonify([])
 
-        cursor = self.mongo.db.events.find({'user_id': user_id})
-        res = []
+        cursor = self.mongo.db.events.find({'user_id': user_id}).sort('created_at', pymongo.DESCENDING)
+        events = []
+        predicted = None
         for event in cursor:
             event['_id'] = str(event['_id'])
-            res.append(event)
 
-        return jsonify(res)
+            if event.get('predicted', False):
+                assert not predicted
+                predicted = event
+            else:
+                events.append(event)
+
+        return jsonify({'predicted': predicted, 'eventlog': events})

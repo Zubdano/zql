@@ -11,6 +11,7 @@ from pipeline import (
 	EventState,
 	FetchAggregationsProcessor,
 	IncrAggregationsProcessor,
+        InterpreterProcessor,
 	MarkovProcessor,
 	PrepareEventsProcessor,
 	RecentEventsProcessor,
@@ -24,6 +25,7 @@ EVENTS_WINDOW = 3
 
 
 EVENT_PIPELINE = CompositeProcessor([
+        InterpreterProcessor(),
 	RecentEventsProcessor(db, 3),
 	FetchAggregationsProcessor(db),
 	IncrAggregationsProcessor(db),
@@ -36,4 +38,4 @@ EVENT_PIPELINE = CompositeProcessor([
 
 @job
 def process_event(data):
-	EVENT_PIPELINE.process(EventState([data]))
+	EVENT_PIPELINE.process(data)
