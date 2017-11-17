@@ -9,7 +9,7 @@ GRAMMAR_ID = "5a0bc90e734d1d08bf70e0ff"
 GRAMMAR_URL = "http://localhost:2666/grammar/{}".format(GRAMMAR_ID)
 
 current_hash = ''
-primary_keys = set()
+primary_key = None
 gen = None
 
 def fix_list(l, keywords):
@@ -42,14 +42,13 @@ def verify_hash(data):
     return False
 
 def generate_file_from_data(data):
-    global gen, primary_keys
+    global gen, primary_key
     if verify_hash(data):
         importlib.reload(gen)
         return gen.root
 
     keywords = set(data['keywords'])
     variables = set(data['variables'])
-    primary_keys = set()
 
     grammar_folder_path = os.path.dirname(__file__) + "/" + GRAMMAR_FOLDER_NAME
     if not os.path.isdir(grammar_folder_path):
@@ -73,7 +72,7 @@ def generate_file_from_data(data):
                     grammar_file.write(values)
 
             if details['isPrimary']:
-                primary_keys.add(rulename)
+                primary_key = rulename
 
             grammar_file.write('\n\n')
 

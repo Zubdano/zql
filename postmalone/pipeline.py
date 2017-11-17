@@ -131,7 +131,7 @@ class RecentEventsProcessor(MongoProcessor):
         """
         Fetches most recent events for current user id.
         """
-        user_id = state.events[0]['primary_properties'].keys()[0]
+        user_id = state.events[0]['user_id']
         events = list(self.db.events.find({
             'user_id': user_id,
         }).sort('created_at', pymongo.DESCENDING).limit(self.window))
@@ -238,7 +238,7 @@ class CleanupPredictedProcessor(MongoProcessor):
         """
         Removes all predicted events for the user if there already exists a user
         """
-        user_id = state.events[0]['primary_properties'].keys()[0]
+        user_id = state.events[0]['user_id']
         predicted_events = [event for event in state.events if event.get('predicted')]
         predicted_hashes = [hash_dict(event['properties']) for event in predicted_events]
         related_events = list(
