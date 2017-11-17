@@ -79,7 +79,7 @@ class GrammarEditor extends Component {
       if (row.get('value').last().last() == "") {
         newValues = row.setIn(['value', row.get('value').size - 1], row.get('value').last().pop()).get('value');
       }
-      submissionGrammar = submissionGrammar.set(row.get('key'), fromJS({ type: type, oneOrMore: row.get('oneOrMore'), row.get('isPrimary'), value: newValues }))
+      submissionGrammar = submissionGrammar.set(row.get('key'), fromJS({ type: type, oneOrMore: row.get('oneOrMore'), isPrimary: row.get('isPrimary'), value: newValues }))
     });
     return submissionGrammar;
   }
