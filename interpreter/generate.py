@@ -1,6 +1,7 @@
-import requests
+import hashlib
 import importlib
 import os
+import requests
 
 GRAMMAR_FILE_NAME = "__init__.py"
 GRAMMAR_FOLDER_NAME = "gen"
@@ -8,44 +9,87 @@ GRAMMAR_FOLDER_NAME = "gen"
 GRAMMAR_ID = "5a0bc90e734d1d08bf70e0ff"
 GRAMMAR_URL = "http://localhost:2666/grammar/{}".format(GRAMMAR_ID)
 
-current_hash = ''
-primary_key = None
-gen = None
+class GrammarRule:
+    def __init__(self, text, data_hash):
+        self.text = text
+        self.data_hash = data_hash
 
-def fix_list(l, keywords):
-    result = []
-    for item in l:
-        if item in keywords:
-            result.append('"{}"'.format(item))
-        else:
-            result.append(item)
-    return result
+class GrammarRuleFactory:
+    def __init__(self):
+        self.rules = {}
 
-def sanitize_values(values, keywords):
-    result = []
-    for value in values:
-        fixed_value = fix_list(value, keywords)
-        if len(fixed_value) == 1:
-            result.append(fixed_value[0])
-        else:
-            result.append(tuple(fixed_value))
+    def _get_hash_from_dict(self, d):
+        return hashlib.md5(str(d).encode('utf-8')).hexdigest()
 
-    if len(result) == 1:
-        return "{}".format(", ".join(result[0]))
-    return "[{}]".format(", ".join(result))
+    def get_or_create_rule(self, rulename, details, keywords):
+        """
+        Creates a GrammarRule if it doesn't exist
+        """
 
-def verify_hash(data):
-    global current_hash
-    if data['hash'] == current_hash:
+        if rulename not in self.rules.keys() or self.rules[rulename].data_hash != self._get_hash_from_dict(details):
+            func_string = self._get_func_string(rulename, details, keywords)
+            self.rules[rulename] = GrammarRule(func_string, self._get_hash_from_dict(details))
+        return self.rules[rulename]
+
+    def delete_rule(self, rulename):
+        """
+        Deletes a rule
+        """
+        if rulename in self.rules:
+            del self.rules[rulename]
+
+    def _get_func_string(self, rulename, details, keywords):
+        res = "def {}(): ".format(rulename)
+        if details['type'] == 'variable':
+            res += "return RegExMatch(r'{}')".format(details['value'][0][0])
+        elif details['type'] == 'rule':
+            res += "return "
+            values = self._sanitize_values(details['value'], keywords)
+
+            if details['oneOrMore']:
+                res += "OneOrMore({}, sep=',')".format(values)
+            else:
+                res += values
+        return res
+
+    def _sanitize_values(self, values, keywords):
+        result = []
+        for value in values:
+            fixed_value = self._fix_list(value, keywords)
+            if len(fixed_value) == 1:
+                result.append(fixed_value[0])
+            else:
+                result.append(tuple(fixed_value))
+
+        if len(result) == 1:
+            return "{}".format(", ".join(result[0]))
+        return "[{}]".format(", ".join([str(v) for v in result]))
+
+    def _fix_list(self, l, keywords):
+        result = []
+        for item in l:
+            if item in keywords:
+                result.append('"{}"'.format(item))
+            else:
+                result.append(item)
+        return result
+
+grammarRuleFactory = GrammarRuleFactory()
+
+class GrammarState:
+    current_hash = ''
+    primary_key = None
+    gen_module = None
+
+def _verify_hash(data):
+    if data['hash'] == GrammarState.current_hash:
         return True
-    current_hash = data['hash']
+    GrammarState.current_hash = data['hash']
     return False
 
-def generate_file_from_data(data):
-    global gen, primary_key
-    if verify_hash(data):
-        importlib.reload(gen)
-        return gen.root
+def _generate_file_from_data(data):
+    if _verify_hash(data):
+        importlib.reload(GrammarState.gen_module)
 
     keywords = set(data['keywords'])
     variables = set(data['variables'])
@@ -55,32 +99,25 @@ def generate_file_from_data(data):
         os.mkdir(grammar_folder_path)
 
     grammar_file_path = grammar_folder_path + "/" + GRAMMAR_FILE_NAME
+
     with open(grammar_file_path, "w+") as grammar_file:
         grammar_file.write("# AUTOMATICALLY GENERATED\n")
         grammar_file.write("from arpeggio import Optional, ZeroOrMore, OneOrMore, EOF, ParserPython, NoMatch, RegExMatch\n\n")
-        for rulename, details in data['structure'].items():
-            grammar_file.write("def {}(): ".format(rulename))
-            if details['type'] == 'variable':
-                grammar_file.write("return RegExMatch(r'{}')".format(details['value'][0][0]))
-            elif details['type'] == 'rule':
-                grammar_file.write("return ")
-                values = sanitize_values(details['value'], keywords)
 
-                if details['oneOrMore']:
-                    grammar_file.write("OneOrMore({}, sep=',')".format(values))
-                else:
-                    grammar_file.write(values)
+        for rulename, details in data['structure'].items():
+            rule = grammarRuleFactory.get_or_create_rule(rulename, details, keywords)
 
             if details['isPrimary']:
-                primary_key = rulename
+                GrammarState.primary_key = rulename
 
+            grammar_file.write(rule.text)
             grammar_file.write('\n\n')
 
-    gen = importlib.import_module(GRAMMAR_FOLDER_NAME)
-    importlib.reload(gen)
-    return gen.root
+    GrammarState.gen_module = importlib.import_module(GRAMMAR_FOLDER_NAME)
+    importlib.reload(GrammarState.gen_module)
 
 def get_grammar_root():
-    # TODO: Verify hashes or update
     res = requests.get(GRAMMAR_URL)
-    return generate_file_from_data(res.json())
+    _generate_file_from_data(res.json())
+
+    return GrammarState.gen_module.root

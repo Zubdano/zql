@@ -2,7 +2,7 @@ from collections import Iterable
 
 from arpeggio import Optional, ZeroOrMore, OneOrMore, EOF, ParserPython, NoMatch, RegExMatch
 from logger import log
-import generate
+from generate import GrammarState
 
 import os
 
@@ -28,9 +28,9 @@ def parse_sentence(sentence, root_rule):
         res['status'] = ACCEPT
 
         all_properties = dict(parse_properties(grammar_node))
-        res['user_id'] = all_properties.get(generate.primary_key)
-        if generate.primary_key in all_properties:
-            del all_properties[generate.primary_key]
+        res['user_id'] = all_properties.get(GrammarState.primary_key)
+        if GrammarState.primary_key in all_properties:
+            del all_properties[GrammarState.primary_key]
         res['properties'] = all_properties
 
     except NoMatch as e:
