@@ -12,12 +12,10 @@ const RECEIVE_GRAMMAR_VALIDITY = 'GRAMMAR_RECEIVE_GRAMMAR_VALIDITY';
 const INPUT_FIELDS_CHANGED = 'GRAMMAR_INPUT_FIELDS_CHANGED';
 const RULES_CHANGED = 'GRAMMAR_RULES_LIST_CHANGED';
 const VARIABLES_CHANGED = 'GRAMMAR_VARIABLES_LIST_CHANGED';
-const FOCUSED_CLASS_CHANGED = 'GRAMMAR_FOCUSED_CLASS_CHANGED';
 
 const initialState = {
   error: null,
   inputFields: fromJS({}),
-  focusedClass: 'chip-0-0',
   rules: fromJS([]).toSet(),
   variables: fromJS([]).toSet(),
 };
@@ -31,7 +29,6 @@ function grammarReducer(state = initialState, action) {
         inputFields: action.grammar,
         variables: action.variables,
         rules: action.rules,
-        focusedClass: 'chip-0-0',
       };
     case INPUT_FIELDS_CHANGED:
       return {
@@ -42,11 +39,6 @@ function grammarReducer(state = initialState, action) {
       return {
         ...state,
         error: action.error,
-      };
-    case FOCUSED_CLASS_CHANGED:
-      return {
-        ...state,
-        focusedClass: action.focusClass,
       };
     case RULES_CHANGED:
       return {
@@ -125,13 +117,6 @@ function variablesChanged(variables) {
   }
 }
 
-function focusClassChanged(focusClass) {
-  return {
-    type: FOCUSED_CLASS_CHANGED,
-    focusClass: focusClass,
-  }
-}
-
 function fetchGrammar() {
   return (dispatch) => new Requestor(BASE_URL).get(GET_GRAMMAR_ROUTE)
     .then(json => {dispatch(receiveGrammar(json));});
@@ -156,16 +141,11 @@ function changeVariables(variables) {
   return dispatch => dispatch(variablesChanged(variables));
 }
 
-function changeFocusClass(focusClass) {
-  return dispatch => dispatch(focusClassChanged(focusClass));
-}
-
 export {
   grammarReducer,
   changeInputFields,
   changeRules,
   changeVariables,
-  changeFocusClass,
   fetchGrammar,
   submitGrammar,
 };
