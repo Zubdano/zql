@@ -61,14 +61,12 @@ function changeReceivedGrammar(data) {
   let newGrammar = fromJS([]);
 
   grammar.map((value, key) => {
-    let numVals = value.get('value').size;
-    let newValue = value.get('value').get(numVals - 1).size;
-    // let newValue = value.get('value').setIn([numVals - 1, numTokens], "");
     newGrammar = newGrammar.push(
       fromJS({
         key: key,
         oneOrMore: value.get('oneOrMore'),
         isPrimary: value.get('isPrimary'),
+        join: value.get('join'),
         value: value.get('value'),
       })
     );

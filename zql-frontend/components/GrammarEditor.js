@@ -39,34 +39,30 @@ class GrammarEditor extends Component {
     let { chipsCreated } = this.state;
 
     this.props.inputFields.map((row, ruleIndex) => {
-      row.get('value').map((value, valIndex) => {
-        let chipsClass = 'chips-' + ruleIndex + '-' + valIndex;
-        let data = value.map((token) => {
-          return {tag: token};
-        });
-        data = { data: data.toJS() } 
-        if (!chipsCreated.has(chipsClass)) {
-          chipsCreated = chipsCreated.set(chipsClass, null);
-          $('.' + chipsClass).material_chip(data);
-          $('.' + chipsClass).on('chip.add',
-            this.handleChipAdd.bind(this, ruleIndex, valIndex));
-          $('.' + chipsClass).on('chip.delete',
-            this.handleChipRemove.bind(this, ruleIndex, valIndex));
-          $('.' + chipsClass).on('keydown', ':input',
-            this.detectKeyPress.bind(this, ruleIndex, valIndex));
-        }
+      let chipsClass = 'chips-' + ruleIndex;
+      let data = row.get('value').map((token) => {
+        return {tag: token};
       });
+      data = { data: data.toJS() } 
+      if (!chipsCreated.has(chipsClass)) {
+        chipsCreated = chipsCreated.set(chipsClass, null);
+        $('.' + chipsClass).material_chip(data);
+        $('.' + chipsClass).on('chip.add',
+          this.handleChipAdd.bind(this, ruleIndex));
+        $('.' + chipsClass).on('chip.delete',
+          this.handleChipRemove.bind(this, ruleIndex));
+      }
     }); 
     if (chipsCreated !== this.state.chipsCreated) {
       this.setState({chipsCreated});
     }
   }
 
-  handleChipAdd(ruleIndex, valIndex, e, chip) {
+  handleChipAdd(ruleIndex, e, chip) {
     let newVariablesSet = this.props.variables;
     let newRulesSet = this.props.rules;
-    let valSize = this.props.inputFields.get(ruleIndex).get('value').get(valIndex).size;
-    let newInputFields = this.props.inputFields.setIn([ruleIndex, "value", valIndex, valSize], chip.tag);
+    let valSize = this.props.inputFields.get(ruleIndex).get('value').size;
+    let newInputFields = this.props.inputFields.setIn([ruleIndex, "value", valSize], chip.tag);
     // if first val and isRegex add to list of variables
     if (this.getType(newInputFields.get(ruleIndex)) == InputFieldTypeEnum.VAR) {
       newVariablesSet = this.props.variables.add(newInputFields.get(ruleIndex).get('key'));
@@ -89,7 +85,7 @@ class GrammarEditor extends Component {
         newRulesSet = newRulesSet.add(row.get('key'));
       }
     });
-    let chipsClass = 'chips-' + ruleIndex + '-' + valIndex;
+    let chipsClass = 'chips-' + ruleIndex;
     $("." + chipsClass + " :input").focus();
     
     this.props.changeRules(newRulesSet);
@@ -97,13 +93,13 @@ class GrammarEditor extends Component {
     this.props.changeVariables(newVariablesSet);
   }
 
-  handleChipRemove(ruleIndex, valIndex, e, chip) {
+  handleChipRemove(ruleIndex, e, chip) {
     //find wordIndex
-    let wordIndex = this.props.inputFields.get(ruleIndex).get('value').get(valIndex).findIndex((token) => {
+    let wordIndex = this.props.inputFields.get(ruleIndex).get('value').findIndex((token) => {
       return token == chip.tag;
     });
-    let newValueRow = this.props.inputFields.get(ruleIndex).get('value').get(valIndex).delete(wordIndex);
-    let newInputFields = this.props.inputFields.setIn([ruleIndex, 'value', valIndex], newValueRow);
+    let newValueRow = this.props.inputFields.get(ruleIndex).get('value').delete(wordIndex);
+    let newInputFields = this.props.inputFields.setIn([ruleIndex, 'value'], newValueRow);
     // bug when you have an or and you remove most recent or'd values
     /*if (newValueRow.size == 0 || (newValueRow.size == 1 && newValueRow.get(0) == "")) {
       newValueRow = this.props.inputFields.get(ruleIndex).get('value').delete(valIndex);
@@ -127,20 +123,6 @@ class GrammarEditor extends Component {
     this.props.changeInputFields(newInputFields);
   }
 
-  // add a new or value to rhs of given lhs index
-  addOr(ruleIndex, valIndex) {
-    let newValues = this.props.inputFields.getIn([ruleIndex, "value"]).insert(
-      valIndex + 1, fromJS([]));
-    let newInputFields = this.props.inputFields.setIn([ruleIndex, "value"], newValues);
-    this.props.changeInputFields(newInputFields);
-  }
-
-  removeOr(ruleIndex, valIndex) {
-    let newValues = this.props.inputFields.getIn([ruleIndex, "value"]).delete(valIndex);
-    let newInputFields = this.props.inputFields.setIn([ruleIndex, "value"], newValues);
-    this.props.changeInputFields(newInputFields);
-  }
-
   // add new input fields for a new row
   addRow() {
     let listSize = this.props.inputFields.size;
@@ -152,13 +134,13 @@ class GrammarEditor extends Component {
   getType(row) {
     let type = InputFieldTypeEnum.VAR;
 
-    if (row.get('value').get(0).last() == "") {
-      row = row.setIn(['value', 0], row.get('value').get(0).delete(1));
+    if (row.get('value').last() == "") {
+      row = row.setIn(['value', 0], row.get('value').delete(1));
     }
 
-    if (row.get('value').size > 1 || row.get('value').get(0).size > 1) return InputFieldTypeEnum.LHS;
+    if (row.get('value').size > 1 || row.get('value').size > 1) return InputFieldTypeEnum.LHS;
 
-    let value = row.get('value').get(0).get(0);
+    let value = row.get('value').get(0);
 
     let inLHS = this.props.inputFields.filter((rule) => {
       return rule.get('key') == value;
@@ -183,8 +165,8 @@ class GrammarEditor extends Component {
       let numTokensInLastRow = row.get('value').last().size;
       let newValues = row.get('value');
 
-      if (row.get('value').last().last() == "") {
-        newValues = row.setIn(['value', row.get('value').size - 1], row.get('value').last().pop()).get('value');
+      if (row.get('value').last() == "") {
+        newValues = row.setIn(['value', row.get('value').size - 1], row.get('value').pop()).get('value');
       }
       submissionGrammar = submissionGrammar.set(row.get('key'), fromJS({ type: type, oneOrMore: row.get('oneOrMore'), isPrimary: row.get('isPrimary'), value: newValues }))
     });
@@ -198,17 +180,6 @@ class GrammarEditor extends Component {
     this.props.submitGrammar(dataToSubmit.toJS(), this.props.id);
   }
 
-  detectKeyPress(ruleIndex, valIndex, e) {
-    if (e.key == 'Tab') {
-      e.preventDefault();
-      this.addOr(ruleIndex, valIndex);
-    } else if (e.key == 'Backspace' && valIndex > 0 &&
-        this.props.inputFields.getIn([ruleIndex, 'value', valIndex]).size === 0) {
-      e.preventDefault();
-      this.removeOr(ruleIndex, valIndex);
-    }
-  }
-
   getValueOfVariable(variable) {
     let rule = this.props.inputFields.find((row) => {
       return row.get('key') == variable;
@@ -218,7 +189,7 @@ class GrammarEditor extends Component {
   }
 
   // change input as user types in an input field
-  inputFieldChange(index, keyOrValue, valIndex, e) {
+  inputFieldChange(index, keyOrValue, e) {
     let newInputFields;
 
     if (keyOrValue == "key") {
@@ -240,8 +211,8 @@ class GrammarEditor extends Component {
       
       newInputFields = this.props.inputFields.setIn([index, "key"], e.target.value);
     } else {
-      let valSize = this.props.inputFields.get(index).get('value').get(valIndex).size;
-      newInputFields = this.props.inputFields.setIn([index, "value", valIndex, valSize - 1], e.target.value);
+      let valSize = this.props.inputFields.get(index).get('value').size;
+      newInputFields = this.props.inputFields.setIn([index, 'value', valSize - 1], e.target.value);
     }
 
     this.props.changeInputFields(newInputFields);
@@ -265,15 +236,10 @@ class GrammarEditor extends Component {
     this.props.changeInputFields(newInputFields);
   }
 
-  renderDefinitions(ruleIndex, values) {
-    let mappedValues = values.map((value, valueIndex) => {
-      let chipsClass = "chips-" + ruleIndex + "-" + valueIndex;
-      return (
-        <div key={chipsClass} className={classNames('chips', chipsClass)}/>
-      );
-    });
+  renderDefinition(ruleIndex, values) {
+    let chipsClass = "chips-" + ruleIndex;
     return (
-      <div>{mappedValues}</div>
+      <div key={chipsClass} className={classNames('chips', chipsClass)}/>
     );
   }
 
@@ -297,6 +263,9 @@ class GrammarEditor extends Component {
     //     </span>
     //   );
     // });
+    const or = row.get('join') === 'or';
+    const oneOrMore = row.get('oneOrMore');
+    const isPrimary = row.get('isPrimary');
     return (
       <tr key={index}>
         <td>
@@ -307,7 +276,16 @@ class GrammarEditor extends Component {
           />
         </td>
         <td>
-          {this.renderDefinitions(index, row.get('value'))}
+          {this.renderDefinition(index, row.get('value'))}
+        </td>
+        <td>
+          <Input onLabel='Or' offLabel='And' type='switch' checked={or} name='on' /> 
+        </td>
+        <td>
+          <Input name='group1' type='checkbox' value='checked' checked={oneOrMore} label='Multi' />
+        </td>
+        <td>
+          <Input name='group1' type='checkbox' value='checked' checked={isPrimary} label='User Id' />
         </td>
       </tr>
     );
@@ -346,9 +324,6 @@ class GrammarEditor extends Component {
             <tr>
               <th data-field="ruleName">Rule Name</th>
               <th data-field="ruleDef">Rule Definition</th>
-              <th data-field="oneOrMore">Multi</th>
-              <th data-field="userId">User Id</th>
-              <th data-field="remove">Remove Rule</th>
             </tr>
           </thead>
           {this.renderRules()}
