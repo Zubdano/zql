@@ -1,4 +1,5 @@
 import requests
+import importlib
 import os
 
 GRAMMAR_FILE_NAME = "__init__.py"
@@ -75,8 +76,9 @@ def generate_file_from_data(data):
 
             grammar_file.write('\n\n')
 
-    root = __import__(GRAMMAR_FOLDER_NAME).root
-    return root
+    gen = importlib.import_module(GRAMMAR_FOLDER_NAME)
+    importlib.reload(gen)
+    return gen.root
 
 def get_grammar_root():
     # TODO: Verify hashes or update
