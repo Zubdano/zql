@@ -1,11 +1,11 @@
 import { fromJS } from 'immutable';
 
 import Requestor from '../requests/requestor';
-import { BASE_URL } from '../requests/auth';
+import { BASE_URL } from '../requests/constants';
 
 // TODO: change these to the legit ones
-const GET_GRAMMAR_ROUTE = '/grammar';
-const CHANGE_GRAMMAR_ROUTE = '/changegrammar';
+const GET_GRAMMAR_ROUTE = '/grammars';
+const CHANGE_GRAMMAR_ROUTE = '/grammar/';
 
 const RECEIVE_GRAMMAR = 'GRAMMAR_RECEIVE_GRAMMAR';
 const RECEIVE_GRAMMAR_VALIDITY = 'GRAMMAR_RECEIVE_GRAMMAR_VALIDITY';
@@ -14,7 +14,7 @@ const RULES_CHANGED = 'GRAMMAR_RULES_LIST_CHANGED';
 const VARIABLES_CHANGED = 'GRAMMAR_VARIABLES_LIST_CHANGED';
 
 const initialState = {
-  hasError: false,
+  error: null,
   inputFields: fromJS({}),
   rules: fromJS([]).toSet(),
   variables: fromJS([]).toSet(),
@@ -23,6 +23,13 @@ const initialState = {
 function grammarReducer(state = initialState, action) {
   switch (action.type) {
     case RECEIVE_GRAMMAR:
+      return {
+        ...state,
+        id: action.id,
+        inputFields: action.grammar,
+        variables: action.variables,
+        rules: action.rules,
+      };
     case INPUT_FIELDS_CHANGED:
       return {
         ...state,
@@ -31,7 +38,7 @@ function grammarReducer(state = initialState, action) {
     case RECEIVE_GRAMMAR_VALIDITY:
       return {
         ...state,
-        hasError: !action.grammarValid,
+        error: action.error,
       };
     case RULES_CHANGED:
       return {
@@ -48,12 +55,37 @@ function grammarReducer(state = initialState, action) {
   }
 }
 
+function changeReceivedGrammar(data) {
+  data = fromJS(data);
+  let grammar = data.get('structure');
+  let newGrammar = fromJS([]);
+
+  grammar.map((value, key) => {
+    let numVals = value.get('value').size;
+    let numTokens = value.get('value').get(numVals - 1).size;
+    let newValue = value.get('value').setIn([numVals - 1, numTokens], "");
+    newGrammar = newGrammar.push(
+      fromJS({
+        key: key,
+        oneOrMore: value.get('oneOrMore'),
+        isPrimary: value.get('isPrimary'),
+        value: newValue,
+      })
+    );
+  });
+
+  return newGrammar;
+}
+
 function receiveGrammar(data) {
+  let grammar = changeReceivedGrammar(data[0]);
+
   return {
     type: RECEIVE_GRAMMAR,
-    grammar: fromJS(data.structure),
-    variables: fromJS(data.variables).toSet(),
-    rules: fromJS(data.rules).toSet(),
+    id: data[0]._id,
+    grammar: grammar,
+    variables: fromJS(data[0].variables).toSet(),
+    rules: fromJS([]).toSet(),
   };
 }
 
@@ -61,7 +93,7 @@ function receiveGrammarValidity(data) {
   // TODO: error message
   return {
     type: RECEIVE_GRAMMAR_VALIDITY,
-    grammarValid: data.grammarValid, 
+    error: data.error, 
   };
 }
 
@@ -88,12 +120,11 @@ function variablesChanged(variables) {
 
 function fetchGrammar() {
   return (dispatch) => new Requestor(BASE_URL).get(GET_GRAMMAR_ROUTE)
-    .then(json => dispatch(receiveGrammar(json)));
+    .then(json => {dispatch(receiveGrammar(json));});
 }
 
-function submitGrammar(grammar) {
-  const data = JSON.stringify(grammar);
-  return (dispatch) => new Requestor(BASE_URL).post(CHANGE_GRAMMAR_ROUTE, data)
+function submitGrammar(grammar, grammarId) {
+  return (dispatch) => new Requestor(BASE_URL).post(CHANGE_GRAMMAR_ROUTE + grammarId, grammar)
     .then(json => dispatch(receiveGrammarValidity(json)));
 }
 
