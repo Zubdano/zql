@@ -9,8 +9,8 @@ GRAMMAR_ID = "5a0bc90e734d1d08bf70e0ff"
 GRAMMAR_URL = "http://localhost:2666/grammar/{}".format(GRAMMAR_ID)
 
 current_hash = ''
-root = None
 primary_keys = set()
+gen = None
 
 def fix_list(l, keywords):
     result = []
@@ -42,9 +42,10 @@ def verify_hash(data):
     return False
 
 def generate_file_from_data(data):
-    global root, primary_keys
+    global gen, primary_keys
     if verify_hash(data):
-        return root
+        importlib.reload(gen)
+        return gen.root
 
     keywords = set(data['keywords'])
     variables = set(data['variables'])
