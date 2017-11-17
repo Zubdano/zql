@@ -6,7 +6,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import { fromJS, List, Map } from 'immutable';
-import { Input, Table } from 'react-materialize';
+import { Button, Input, Table } from 'react-materialize';
 import './GrammarEditor.scss'
 import classNames from 'classnames';
 
@@ -24,37 +24,46 @@ const InputFieldTypeEnum = {
   LHS: 'rule',
 }
 
-const emptyRow = {key: "", oneOrMore: false, isPrimary: false, value: [[""]]};
+const NEW_ROW = {key: "", oneOrMore: false, isPrimary: false, join: 'and', value: []};
 
 class GrammarEditor extends Component {
   // fetch initial grammar / use default value if none exists
   componentDidMount() {
     this.props.fetchGrammar();
     this.state = {
-      chipsCreated: fromJS({}),
+      numChips: 0,
     };
   }
 
   componentDidUpdate() {
-    let { chipsCreated } = this.state;
+    let { numChips } = this.state;
+    let focused = -1;
 
     this.props.inputFields.map((row, ruleIndex) => {
-      let chipsClass = 'chips-' + ruleIndex;
+      let chipsClass = '.chips-' + ruleIndex;
       let data = row.get('value').map((token) => {
         return {tag: token};
       });
       data = { data: data.toJS() } 
-      if (!chipsCreated.has(chipsClass)) {
-        chipsCreated = chipsCreated.set(chipsClass, null);
-        $('.' + chipsClass).material_chip(data);
-        $('.' + chipsClass).on('chip.add',
+      if (ruleIndex >= numChips) {
+        numChips += 1;
+        $(chipsClass).material_chip(data);
+        $(chipsClass).on('chip.add',
           this.handleChipAdd.bind(this, ruleIndex));
-        $('.' + chipsClass).on('chip.delete',
+        $(chipsClass).on('chip.delete',
           this.handleChipRemove.bind(this, ruleIndex));
+      } else {
+        if ($(chipsClass + ' .input').is(":focus")) focused = ruleIndex;
+        $(chipsClass).material_chip(data);
       }
     }); 
-    if (chipsCreated !== this.state.chipsCreated) {
-      this.setState({chipsCreated});
+    if (focused >= 0) {
+      const chipsClass = '.chips-' + focused + ' .input';
+      $(chipsClass).focus();
+    }
+
+    if (numChips !== this.state.numChips) {
+      this.setState({numChips});
     }
   }
 
@@ -126,7 +135,7 @@ class GrammarEditor extends Component {
   // add new input fields for a new row
   addRow() {
     let listSize = this.props.inputFields.size;
-    let newInputFields = this.props.inputFields.set(listSize, fromJS(emptyRow));
+    let newInputFields = this.props.inputFields.set(listSize, fromJS(NEW_ROW));
     this.props.changeInputFields(newInputFields);
   }
 
@@ -168,7 +177,14 @@ class GrammarEditor extends Component {
       if (row.get('value').last() == "") {
         newValues = row.setIn(['value', row.get('value').size - 1], row.get('value').pop()).get('value');
       }
-      submissionGrammar = submissionGrammar.set(row.get('key'), fromJS({ type: type, oneOrMore: row.get('oneOrMore'), isPrimary: row.get('isPrimary'), value: newValues }))
+      submissionGrammar = submissionGrammar.set(row.get('key'), fromJS({
+        type: type,
+        oneOrMore: row.get('oneOrMore'),
+        isPrimary: row.get('isPrimary'),
+        join: row.get('join'),
+        value: newValues,
+      }));
+      console.log(submissionGrammar.toJS());
     });
     return submissionGrammar;
   }
@@ -185,7 +201,7 @@ class GrammarEditor extends Component {
       return row.get('key') == variable;
     });
 
-    return rule.get('value').first().first();
+    return rule.get('value').first();
   }
 
   // change input as user types in an input field
@@ -218,21 +234,28 @@ class GrammarEditor extends Component {
     this.props.changeInputFields(newInputFields);
   }
 
+  // remove the last rule
+  removeRow(removeIndex) {
+    let newInputFields = this.props.inputFields.delete(removeIndex);
+    this.props.changeInputFields(newInputFields);
+    this.setState({numChips: this.state.numChips - 1});
+  }
+
   // change multiplicity of a rule
-  oneOrMore(index, e) {
+  handleOneOrMore(index, e) {
     let newInputFields = this.props.inputFields.setIn([index, "oneOrMore"], e.target.checked);
     this.props.changeInputFields(newInputFields);
   }
 
   // make this key primary
-  makePrimary(index, e) {
+  handleIsPrimary(index, e) {
     let newInputFields = this.props.inputFields.setIn([index, "isPrimary"], e.target.checked);
     this.props.changeInputFields(newInputFields);
   }
 
-  // remove the last rule
-  removeRow(removeIndex) {
-    let newInputFields = this.props.inputFields.delete(removeIndex);
+  handleJoinToggle(index, e) {
+    let newInputFields = this.props.inputFields.setIn([index, "join"],
+      e.target.checked ? 'or' : 'and');
     this.props.changeInputFields(newInputFields);
   }
 
@@ -272,20 +295,27 @@ class GrammarEditor extends Component {
           <input
             className='Grammar-editor-input-key'
             value={row.get('key')}
-            onChange={this.inputFieldChange.bind(this, index, "key", -1)}
+            onChange={this.inputFieldChange.bind(this, index, "key")}
           />
         </td>
         <td>
           {this.renderDefinition(index, row.get('value'))}
         </td>
         <td>
-          <Input onLabel='Or' offLabel='And' type='switch' checked={or} name='on' /> 
+          <Input onLabel='Or' offLabel='And' type='switch' checked={or} name='on'
+            onChange={this.handleJoinToggle.bind(this, index)} /> 
         </td>
         <td>
-          <Input name='group1' type='checkbox' value='checked' checked={oneOrMore} label='Multi' />
+          <Input name='group1' type='checkbox' value='checked' checked={oneOrMore} label='Multi'
+            onChange={this.handleOneOrMore.bind(this, index)}/>
         </td>
         <td>
-          <Input name='group1' type='checkbox' value='checked' checked={isPrimary} label='User Id' />
+          <Input name='group1' type='checkbox' value='checked' checked={isPrimary} label='User Id'
+            onChange={this.handleIsPrimary.bind(this, index)}/>
+        </td>
+        <td>
+          <Button floating large className='red' waves='light' icon='delete'
+            onClick={this.removeRow.bind(this, index)}/>
         </td>
       </tr>
     );
@@ -328,7 +358,8 @@ class GrammarEditor extends Component {
           </thead>
           {this.renderRules()}
         </Table>
-        <button className="Grammar-editor-submit-button" onClick={this.changeGrammar.bind(this)}>Change Grammar</button>
+        <Button onClick={this.addRow.bind(this)}>Add Row</Button>
+        <Button onClick={this.changeGrammar.bind(this)}>Change Grammar</Button>
         <div>{this.props.error}</div>
       </div>
     );
