@@ -20,7 +20,7 @@ function renderWithAuth(component, props) {
 const MainRouter = () => (
   <main>
     <Switch>
-      <Route exact path='/' render={(props) => renderWithAuth(TextInput, props)}/>
+      <Route path='/input' render={(props) => renderWithAuth(TextInput, props)}/>
       <Route path='/grammar' render={(props) => renderWithAuth(GrammarEditor, props)}/>
       <Route path='/events' render={(props) => renderWithAuth(Events, props)}/>
       <Route path='/login' component={LoginScreen}/>

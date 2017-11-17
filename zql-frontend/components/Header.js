@@ -18,9 +18,9 @@ class Header extends Component {
     ) : null;
     return (
       <Navbar brand='ZQL'>
-        {auth.currentUser.permission <= Permissions.EDITOR && <li><NavLink to="/grammar">Grammar Editor</NavLink></li>}
-        {auth.currentUser.permission <= Permissions.WRITER && <li><NavLink to="/">Text Input</NavLink></li>}
-        {auth.currentUser.permission <= Permissions.READER && <li><NavLink to="/events">Events</NavLink></li>}
+        {auth.currentUser.permission <= Permissions.EDITOR && <li><NavLink activeClassName="selected" to="/grammar">Grammar Editor</NavLink></li>}
+        {auth.currentUser.permission <= Permissions.WRITER && <li><NavLink activeClassName="selected" to="/input">Text Input</NavLink></li>}
+        {auth.currentUser.permission <= Permissions.READER && <li><NavLink activeClassName="selected" to="/events">Events</NavLink></li>}
         {logoutButton}
       </Navbar>
     );
