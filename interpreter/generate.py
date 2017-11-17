@@ -7,7 +7,43 @@ GRAMMAR_FOLDER_NAME = "gen"
 GRAMMAR_ID = "5a0bc90e734d1d08bf70e0ff"
 GRAMMAR_URL = "http://localhost:2666/grammar/{}".format(GRAMMAR_ID)
 
+current_hash = ''
+root = None
+
+def fix_list(l, keywords):
+    result = []
+    for item in l:
+        if item in keywords:
+            result.append('"{}"'.format(item))
+        else:
+            result.append(item)
+    return result
+
+def sanitize_values(values, keywords):
+    result = []
+    for value in values:
+        fixed_value = fix_list(value, keywords)
+        if len(fixed_value) == 1:
+            result.append(fixed_value[0])
+        else:
+            result.append(tuple(fixed_value))
+
+    if len(result) == 1:
+        return "{}".format(", ".join(result[0]))
+    return "[{}]".format(", ".join(result))
+
+def verify_hash(data):
+    global current_hash
+    if data['hash'] == current_hash:
+        return True
+    current_hash = data['hash']
+    return False
+
 def generate_file_from_data(data):
+    global root
+    if verify_hash(data):
+        return root
+
     keywords = set(data['keywords'])
     variables = set(data['variables'])
 
@@ -22,30 +58,15 @@ def generate_file_from_data(data):
         for rulename, details in data['structure'].items():
             grammar_file.write("def {}(): ".format(rulename))
             if details['type'] == 'variable':
-                grammar_file.write("return RegExMatch(r'{}')".format(details['value']))
+                grammar_file.write("return RegExMatch(r'{}')".format(details['value'][0][0]))
             elif details['type'] == 'rule':
                 grammar_file.write("return ")
-                quoted_values = []
-                if isinstance(details['value'][0], list):
-                    values = [value[0] for value in details['value']]
+                values = sanitize_values(details['value'], keywords)
 
-                    if details['oneOrMore']:
-                        grammar_file.write("OneOrMore({}, sep=',')".format(values))
-                    else:
-                        quoted_values = []
-                        for value in values:
-                            if value in data['structure'].keys():
-                                quoted_values.append(value)
-                            else:
-                                quoted_values.append("'{}'".format(value))
-                        grammar_file.write("[{}]".format(", ".join(quoted_values)))
+                if details['oneOrMore']:
+                    grammar_file.write("OneOrMore({}, sep=',')".format(values))
                 else:
-                    for value in details['value']:
-                        if value in keywords:
-                            quoted_values.append('"{}"'.format(value))
-                        else:
-                            quoted_values.append(value)
-                    grammar_file.write(", ".join(quoted_values))
+                    grammar_file.write(values)
 
             grammar_file.write('\n\n')
 
