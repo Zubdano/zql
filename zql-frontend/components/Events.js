@@ -55,13 +55,14 @@ class Events extends Component {
 
   renderEvents() {
     const events = this.props.events.get('eventlog').map((event) => {
-      const eventHeader = (
-    <p style={{margin: 0, align: 'left'}}>
-          {this.singleLineProperties(event.get('properties'))}
+    const eventHeader = (
+      <p style={{margin: 0, align: 'left'}}>
+        <span className="rule">{event.get('rule')}</span>
+        [{this.singleLineProperties(event.get('properties'))}]
         <span style={{float: 'right'}}>
             {this.computeTimeFromNow(event.get('created_at'))}
-          </span>
-        </p>
+        </span>
+      </p>
     );
 
       const eventJSON = JSON.stringify(event, null, 2);

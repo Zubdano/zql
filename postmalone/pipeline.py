@@ -206,6 +206,7 @@ class MarkovProcessor(MongoProcessor):
                 return state.with_events([{
                     'user_id': state.events[0]['user_id'],
                     'properties': events[0]['properties'],
+                    'rule': events[0]['rule'],
                     'predicted': True,
                     'prob': best_prediction[0],
                 }])
