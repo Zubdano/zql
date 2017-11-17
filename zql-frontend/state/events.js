@@ -8,7 +8,7 @@ const GET_EVENTS_ROUTE = '/events';
 const RECEIVE_EVENTS = 'EVENTS_RECEIVE_EVENTS';
 
 const initialState = {
-  events: fromJS([]),
+  events: fromJS({predicted: null, eventlog: []}),
 };
 
 function eventsReducer(state = initialState, action) {
