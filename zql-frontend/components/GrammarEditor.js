@@ -25,15 +25,19 @@ const InputFieldTypeEnum = {
 }
 
 const emptyRow = {key: "", oneOrMore: false, isPrimary: false, value: [[""]]};
-let someThing = true;
 
 class GrammarEditor extends Component {
   // fetch initial grammar / use default value if none exists
   componentDidMount() {
     this.props.fetchGrammar();
+    this.state = {
+      chipsCreated: fromJS({}),
+    };
   }
 
   componentDidUpdate() {
+    let { chipsCreated } = this.state;
+
     this.props.inputFields.map((row, ruleIndex) => {
       row.get('value').map((value, valIndex) => {
         let chipsClass = 'chips-' + ruleIndex + '-' + valIndex;
@@ -41,17 +45,21 @@ class GrammarEditor extends Component {
           return {tag: token};
         });
         data = { data: data.toJS() } 
-        $('.' + chipsClass).off('chip.add');
-        $('.' + chipsClass).off('chip.delete');
-        if (someThing) {
+        if (!chipsCreated.has(chipsClass)) {
+          chipsCreated = chipsCreated.set(chipsClass, null);
           $('.' + chipsClass).material_chip(data);
-          someThing = false;
+          $('.' + chipsClass).on('chip.add',
+            this.handleChipAdd.bind(this, ruleIndex, valIndex));
+          $('.' + chipsClass).on('chip.delete',
+            this.handleChipRemove.bind(this, ruleIndex, valIndex));
+          $('.' + chipsClass).on('keydown', ':input',
+            this.detectKeyPress.bind(this, ruleIndex, valIndex));
         }
-        $('.' + chipsClass).on('chip.add', this.handleChipAdd.bind(this, ruleIndex, valIndex));
-        $('.' + chipsClass).on('chip.delete', this.handleChipRemove.bind(this, ruleIndex, valIndex));
       });
     }); 
-    $("." + this.props.focusedClass).focus();
+    if (chipsCreated !== this.state.chipsCreated) {
+      this.setState({chipsCreated});
+    }
   }
 
   handleChipAdd(ruleIndex, valIndex, e, chip) {
@@ -120,9 +128,16 @@ class GrammarEditor extends Component {
   }
 
   // add a new or value to rhs of given lhs index
-  addOr(ruleIndex, e) {
-    let numVals = this.props.inputFields.get(ruleIndex).get('value').size;
-    let newInputFields = this.props.inputFields.setIn([ruleIndex, "value", numVals], fromJS([""]));
+  addOr(ruleIndex, valIndex) {
+    let newValues = this.props.inputFields.getIn([ruleIndex, "value"]).insert(
+      valIndex + 1, fromJS([]));
+    let newInputFields = this.props.inputFields.setIn([ruleIndex, "value"], newValues);
+    this.props.changeInputFields(newInputFields);
+  }
+
+  removeOr(ruleIndex, valIndex) {
+    let newValues = this.props.inputFields.getIn([ruleIndex, "value"]).delete(valIndex);
+    let newInputFields = this.props.inputFields.setIn([ruleIndex, "value"], newValues);
     this.props.changeInputFields(newInputFields);
   }
 
@@ -183,14 +198,15 @@ class GrammarEditor extends Component {
     this.props.submitGrammar(dataToSubmit.toJS(), this.props.id);
   }
 
-  detectKeyPress(index, valIndex, e) {
-      if (e.key == 'Enter') {
-        this.inputEnter(index, valIndex, e);
-        e.preventDefault();
-      } else if (e.key == '|') {
-        e.preventDefault();
-        this.addOr(index, e);
-      }
+  detectKeyPress(ruleIndex, valIndex, e) {
+    if (e.key == 'Tab') {
+      e.preventDefault();
+      this.addOr(ruleIndex, valIndex);
+    } else if (e.key == 'Backspace' && valIndex > 0 &&
+        this.props.inputFields.getIn([ruleIndex, 'value', valIndex]).size === 0) {
+      e.preventDefault();
+      this.removeOr(ruleIndex, valIndex);
+    }
   }
 
   getValueOfVariable(variable) {
@@ -231,40 +247,6 @@ class GrammarEditor extends Component {
     this.props.changeInputFields(newInputFields);
   }
 
-  inputEnter(ruleIndex, valIndex, e) {
-    let valSize = this.props.inputFields.get(ruleIndex).get('value').get(valIndex).size;
-
-    let newInputFields = this.props.inputFields.setIn([ruleIndex, "value", valIndex, valSize], "");
-    let newVariablesSet = this.props.variables;
-    let newRulesSet = this.props.rules;
-    // if first val and isRegex add to list of variables
-    if (this.getType(newInputFields.get(ruleIndex)) == InputFieldTypeEnum.VAR) {
-      newVariablesSet = this.props.variables.add(newInputFields.get(ruleIndex).get('key'));
-    } else {
-      let keyVal = newInputFields.get(ruleIndex).get('key');
-
-      // if key was variable, it is now a rule.
-      if (this.props.variables.includes(keyVal)) {
-        newVariablesSet = this.props.variables.delete(keyVal);
-      }
-
-      newRulesSet = this.props.rules.add(keyVal);
-    }
-
-    // probably a better way to do this but too tired
-    let newKey = newInputFields.get(ruleIndex).get('key');
-    newInputFields.map((row) => {
-      if (this.props.variables.includes(row.get('key')) && this.getValueOfVariable(row.get('key')) == newKey && row.get('key') != newKey) {
-        newVariablesSet = newVariablesSet.delete(row.get('key'));
-        newRulesSet = newRulesSet.add(row.get('key'));
-      }
-    });
-    
-    this.props.changeRules(newRulesSet);
-    this.props.changeInputFields(newInputFields);
-    this.props.changeVariables(newVariablesSet);
-  }
-
   // change multiplicity of a rule
   oneOrMore(index, e) {
     let newInputFields = this.props.inputFields.setIn([index, "oneOrMore"], e.target.checked);
@@ -283,82 +265,11 @@ class GrammarEditor extends Component {
     this.props.changeInputFields(newInputFields);
   }
 
-  // remove a word from rhs
-  removeWord(ruleIndex, valIndex, wordIndex) {
-    let newValueRow = this.props.inputFields.get(ruleIndex).get('value').get(valIndex).delete(wordIndex);
-    let newInputFields = this.props.inputFields.setIn([ruleIndex, 'value', valIndex], newValueRow);
-
-    // bug when you have an or and you remove most recent or'd values
-    if (newValueRow.size == 0 || (newValueRow.size == 1 && newValueRow.get(0) == "")) {
-      newValueRow = this.props.inputFields.get(ruleIndex).get('value').delete(valIndex);
-      if (newValueRow.size == 0 && this.props.inputFields.get(ruleIndex).get('value').size == 1) {
-        newValueRow = newValueRow.push("");
-        newInputFields = this.props.inputFields.setIn([ruleIndex, 'value', valIndex], newValueRow);
-      } else {
-        newInputFields = this.props.inputFields.setIn([ruleIndex, 'value'], newValueRow);
-      }
-    }
-
-    // if regex removed from variable, remove variable from list of variables
-    let keyOfRemovedWord = this.props.inputFields.get(ruleIndex).get('key')
-    if (this.props.variables.includes(keyOfRemovedWord)) {
-      let newVariablesSet = this.props.variables.delete(keyOfRemovedWord);
-      this.props.changeVariables(newVariablesSet);
-    } else {
-      let newRulesSet = this.props.rules.delete(keyOfRemovedWord);
-      this.props.changeRules(newRulesSet);
-    }
-
-    this.props.changeInputFields(newInputFields);
-  }
-
-  renderLhs() {
-    return (
-      <div className="Grammar-editor-type-group">
-        <div className='Grammar-editor-title-div'><span className='Grammar-editor-title-span'>Rule names:</span><span>Rule definition:</span></div>
-        {this.props.inputFields.valueSeq().map((row, index) => { // map through list of lhs rules
-          let numVals = row.get('value').size;
-          let mappedValues = row.get('value').map((value, valIndex) => { // map through list of rhs values
-            let val = value;
-            if (valIndex == numVals - 1) 
-              val = value.slice(0, value.size - 1);
-            return (
-              <span key={valIndex}>
-                {val.map((token, tokenIndex) => {
-                  return (
-                    <span className="Grammar-editor-entered-word" key={tokenIndex}>{token}<span className='Grammar-editor-remove-word' onClick={this.removeWord.bind(this, index, valIndex, tokenIndex)}> x </span></span>
-                  );
-                })}
-                {valIndex < numVals - 1 
-                  ? <span className="Grammar-editor-entered-or"> OR </span>
-                  : null
-                }
-              </span>
-            );
-          });
-          let val = row.get('value').last().last();
-          return (
-            <div className="Grammar-editor-row" key={index}>
-              <input className='Grammar-editor-input-key' value={row.get('key')} onChange={this.inputFieldChange.bind(this, index, "key", -1)} />
-              {mappedValues}
-              <input className='Grammar-editor-input-value' value={val} onKeyPress={this.detectKeyPress.bind(this, index, numVals - 1)} onChange={this.inputFieldChange.bind(this, index, "value", numVals - 1)} />
-              <input type="checkbox" onChange={this.oneOrMore.bind(this, index)} />
-              <input type="checkbox" onChange={this.makePrimary.bind(this, index)} />
-              <button className="Grammar-editor-remove-row-button" onClick={this.removeRow.bind(this, index)}> Remove row </button>
-            </div>
-          );
-        })}
-        <div><button className="Grammar-editor-add-row-button" onClick={this.addRow.bind(this)}> Add a row </button></div>
-      </div>
-    );
-  }
-
   renderDefinitions(ruleIndex, values) {
     let mappedValues = values.map((value, valueIndex) => {
       let chipsClass = "chips-" + ruleIndex + "-" + valueIndex;
       return (
-        <div key={chipsClass} className={classNames('chips', chipsClass)}>
-        </div>
+        <div key={chipsClass} className={classNames('chips', chipsClass)}/>
       );
     });
     return (
@@ -367,25 +278,25 @@ class GrammarEditor extends Component {
   }
 
   renderRule(row, index) {
-    let numVals = row.get('value').size;
-    let mappedValues = row.get('value').map((value, valIndex) => { // map through list of rhs values
-      let val = value;
-      if (valIndex == numVals - 1) 
-        val = value.slice(0, value.size - 1);
-      return (
-        <span key={valIndex}>
-          {val.map((token, tokenIndex) => {
-            return (
-              <span className="Grammar-editor-entered-word" key={tokenIndex}>{token}<span className='Grammar-editor-remove-word' onClick={this.removeWord.bind(this, index, valIndex, tokenIndex)}> x </span></span>
-            );
-          })}
-          {valIndex < numVals - 1 
-            ? <span className="Grammar-editor-entered-or"> OR </span>
-            : null
-          }
-        </span>
-      );
-    });
+    // let numVals = row.get('value').size;
+    // let mappedValues = row.get('value').map((value, valIndex) => { // map through list of rhs values
+    //   let val = value;
+    //   if (valIndex == numVals - 1) 
+    //     val = value.slice(0, value.size - 1);
+    //   return (
+    //     <span key={valIndex}>
+    //       {val.map((token, tokenIndex) => {
+    //         return (
+    //           <span className="Grammar-editor-entered-word" key={tokenIndex}>{token}<span className='Grammar-editor-remove-word' onClick={this.removeWord.bind(this, index, valIndex, tokenIndex)}> x </span></span>
+    //         );
+    //       })}
+    //       {valIndex < numVals - 1 
+    //         ? <span className="Grammar-editor-entered-or"> OR </span>
+    //         : null
+    //       }
+    //     </span>
+    //   );
+    // });
     return (
       <tr key={index}>
         <td>
@@ -403,19 +314,19 @@ class GrammarEditor extends Component {
   }
 
   renderRules() {
-    this.props.inputFields.valueSeq().map((row, index) => { // map through list of lhs rules
-      let val = row.get('value').last().last();
-      return (
-        <div className="Grammar-editor-row" key={index}>
-          <input className='Grammar-editor-input-key' value={row.get('key')} onChange={this.inputFieldChange.bind(this, index, "key", -1)} />
-          {mappedValues}
-          <input className='Grammar-editor-input-value' value={val} onKeyPress={this.detectKeyPress.bind(this, index, numVals - 1)} onChange={this.inputFieldChange.bind(this, index, "value", numVals - 1)} />
-          <input type="checkbox" onChange={this.oneOrMore.bind(this, index)} />
-          <input type="checkbox" onChange={this.makePrimary.bind(this, index)} />
-          <button className="Grammar-editor-remove-row-button" onClick={this.removeRow.bind(this, index)}> Remove row </button>
-        </div>
-      );
-    });
+    // this.props.inputFields.valueSeq().map((row, index) => { // map through list of lhs rules
+    //   let val = row.get('value').last().last();
+    //   return (
+    //     <div className="Grammar-editor-row" key={index}>
+    //       <input className='Grammar-editor-input-key' value={row.get('key')} onChange={this.inputFieldChange.bind(this, index, "key", -1)} />
+    //       {mappedValues}
+    //       <input className='Grammar-editor-input-value' value={val} onKeyPress={this.detectKeyPress.bind(this, index, numVals - 1)} onChange={this.inputFieldChange.bind(this, index, "value", numVals - 1)} />
+    //       <input type="checkbox" onChange={this.oneOrMore.bind(this, index)} />
+    //       <input type="checkbox" onChange={this.makePrimary.bind(this, index)} />
+    //       <button className="Grammar-editor-remove-row-button" onClick={this.removeRow.bind(this, index)}> Remove row </button>
+    //     </div>
+    //   );
+    // });
     const rules = this.props.inputFields.valueSeq().map((row, index) => {
       return this.renderRule(row, index);
     }, this);
