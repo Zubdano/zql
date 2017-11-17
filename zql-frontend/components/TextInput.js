@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import { convertToRaw, ContentState, EditorState, Modifier, SelectionState } from 'draft-js';
 import Editor from 'draft-js-plugins-editor';
+import { Button } from 'react-materialize';
 import { List, fromJS } from 'immutable';
 import 'draft-js/dist/Draft.css';
 
@@ -101,18 +102,11 @@ class TextInput extends Component {
           />
         </div>
         <div className={`statusText-${this.props.status || 'incomplete'}`}>{this.props.status || 'incomplete'}</div>
-        <button
-          className="submitButton"
+        <Button
           type="button"
           onClick={this.handleSubmitClick}
           disabled={this.props.status !== 'accept'}
-        >Submit</button>
-        <input
-          onClick={this.logState}
-          className="logStateButton"
-          type="button"
-          value="Log State"
-        />
+        >Submit</Button>
       </div>
     );
   }

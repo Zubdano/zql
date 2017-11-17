@@ -266,10 +266,7 @@ class GrammarEditor extends Component {
       <div className="Grammar-editor">
         {this.renderLhs()}
         <button className="Grammar-editor-submit-button" onClick={this.changeGrammar.bind(this)}>Change Grammar</button>
-        {this.props.hasError
-          ? <div>Erroneous input</div>
-          : null
-        }
+        <div>{this.props.error}</div>
       </div>
     );
   }

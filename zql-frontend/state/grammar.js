@@ -90,7 +90,6 @@ function receiveGrammar(data) {
 }
 
 function receiveGrammarValidity(data) {
-  // TODO: error message
   return {
     type: RECEIVE_GRAMMAR_VALIDITY,
     error: data.error, 
@@ -125,7 +124,9 @@ function fetchGrammar() {
 
 function submitGrammar(grammar, grammarId) {
   return (dispatch) => new Requestor(BASE_URL).post(CHANGE_GRAMMAR_ROUTE + grammarId, grammar)
-    .then(json => dispatch(receiveGrammarValidity(json)));
+    .then(json => dispatch(receiveGrammarValidity({})))
+    .catch(error => dispatch(receiveGrammarValidity({error: error.message})));
+
 }
 
 function changeInputFields(inputFields) {

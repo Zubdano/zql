@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import './LoginScreen.scss';
+import { Button } from 'react-materialize';
+
 import { auth } from '../requests/auth';
 
 class LoginScreen extends Component {
@@ -54,22 +56,17 @@ class LoginScreen extends Component {
       <form action="#" className="loginContainer">
         <input
           placeholder="Username"
-          className="loginElement loginText"
+          className="loginElement"
           onChange={this.handleUsernameChange}
           type="text"
         />
         <input
           placeholder="Password"
-          className="loginElement loginText"
+          className="loginElement"
           onChange={this.handlePasswordChange}
           type="password"
         />
-        <input
-          className="loginElement loginButton"
-          type="submit"
-          value="Log In"
-          onClick={this.handleSubmit}
-        />
+        <Button onClick={this.handleSubmit}>Login</Button>
         {error}
       </form>
     );
