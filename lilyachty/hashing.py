@@ -8,7 +8,7 @@ def stringify_grammar(grammar):
 
     for lhs in sorted(grammar.keys()):
         data = grammar[lhs]
-        deterministic.append([lhs, data['type'], data['oneOrMore'], data['isPrimary'], data['value']])
+        deterministic.append([lhs, data['type'], data['oneOrMore'], data['isPrimary'], data['join'], data['value']])
 
     return json.dumps(deterministic)
 
