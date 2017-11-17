@@ -32,7 +32,7 @@ mapping = {
     'grammars': grammar,
 
     # Postprocessing Service forwarders
-    'submit': postprocessing, # TODO: wtf does this do?
+    'event': postprocessing, # TODO: wtf does this do?
     'events': postprocessing,
 }
 

@@ -46,7 +46,7 @@ class EventPushHandler(BaseHandler):
         """
         Pushes event to the task queue.
         """
-        event = request.json
+        event = request.json['raw']
         try:
             process_event.delay(event)
             return jsonify({'success': True})
