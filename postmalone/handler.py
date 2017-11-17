@@ -80,9 +80,15 @@ class GetEventsHandler(BaseHandler):
             return jsonify([])
 
         cursor = self.mongo.db.events.find({'user_id': user_id}).sort('created_at', pymongo.DESCENDING)
-        res = []
+        events = []
+        predicted = None
         for event in cursor:
             event['_id'] = str(event['_id'])
-            res.append(event)
 
-        return jsonify(res)
+            if event.get('predicted', False):
+                assert not predicted
+                predicted = event
+            else:
+                events.append(event)
+
+        return jsonify({'predicted': predicted, 'eventlog': events})

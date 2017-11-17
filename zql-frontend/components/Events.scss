@@ -1,3 +1,14 @@
+.predictedBox {
+  margin: auto;
+  margin-top: 2em;
+  width: 50em;
+  background-color: #38435a;
+  color: #fff;
+  .card-title {
+    color: #fff !important;
+  }
+}
+
 .eventBox {
   margin: auto;
   margin-top: 2em;
@@ -10,6 +21,7 @@
 
 .jsonBoxOuter {
   color: #d0d0d0;
+  text-align: left;
 }
 
 .jsonBox {
