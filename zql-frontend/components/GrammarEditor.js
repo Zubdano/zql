@@ -1,6 +1,7 @@
 //Assumptions
 // - user will not enter something like: patient - [a-zA-Z] asdf
 // - user will enter the key before a value
+// - primary key can only be a variable and a single variable
 
 import React, { Component } from 'react';
 import { connect } from 'react-redux'
@@ -14,7 +15,7 @@ const InputFieldTypeEnum = {
   LHS: 'rule',
 }
 
-const emptyRow = {key: "", oneOrMore: false, value: [[""]]};
+const emptyRow = {key: "", oneOrMore: false, isPrimary: false, value: [[""]]};
 
 class GrammarEditor extends Component {
   // fetch initial grammar / use default value if none exists
@@ -87,8 +88,7 @@ class GrammarEditor extends Component {
   changeGrammar() {
     let dataToSubmit = this.getSubmissionGrammar();
     dataToSubmit = fromJS({grammar: dataToSubmit});
-    debugger;
-    this.props.submitGrammar(dataToSubmit.toJS());
+    this.props.submitGrammar(dataToSubmit.toJS(), this.props.id);
   }
 
   detectKeyPress(index, valIndex, e) {
@@ -179,6 +179,12 @@ class GrammarEditor extends Component {
     this.props.changeInputFields(newInputFields);
   }
 
+  // make this key primary
+  makePrimary(index, e) {
+    let newInputFields = this.props.inputFields.setIn([index, "isPrimary"], e.target.checked);
+    this.props.changeInputFields(newInputFields);
+  }
+
   // remove the last rule
   removeRow(removeIndex) {
     let newInputFields = this.props.inputFields.delete(removeIndex);
@@ -245,6 +251,7 @@ class GrammarEditor extends Component {
               {mappedValues}
               <input className='Grammar-editor-input-value' value={val} onKeyPress={this.detectKeyPress.bind(this, index, numVals - 1)} onChange={this.inputFieldChange.bind(this, index, "value", numVals - 1)} />
               <input type="checkbox" onChange={this.oneOrMore.bind(this, index)} />
+              <input type="checkbox" onChange={this.makePrimary.bind(this, index)} />
               <button className="Grammar-editor-remove-row-button" onClick={this.removeRow.bind(this, index)}> Remove row </button>
             </div>
           );

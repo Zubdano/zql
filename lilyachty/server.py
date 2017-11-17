@@ -26,9 +26,9 @@ def get_grammars():
     return jsonify(res)
 
 
-@app.route('/grammar/<grammar_id>', methods=['PUT'])
+@app.route('/grammar/<grammar_id>', methods=['POST'])
 def update_grammar(grammar_id):
-    user_id = request.headers['User.Id']
+    user_id = request.headers['User.Username']
     user_permission = int(request.headers['User.Permission'])
 
     if user_permission != 0:

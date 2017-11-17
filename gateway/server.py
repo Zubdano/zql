@@ -83,7 +83,7 @@ def login():
 def new_user():
     username = request.json.get('username')
     password = request.json.get('password')
-    permission = request.json.get('permission')
+    permission = request.json.get('permission') # value of 0-2
 
     if username is None or password is None or permission is None:
         raise APIError('Missing username, password or permission', status_code=409)
