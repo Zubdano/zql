@@ -14,7 +14,9 @@ class Requestor {
     }
 
     return fetch(route, fetchParams).then((response) => {
-      if (!response.ok) throw Error(response.json().then().error)
+      if (!response.ok) return response.json().then(data => {
+        throw new Error(data.error);
+      });
       return response.json();
     });
   }
