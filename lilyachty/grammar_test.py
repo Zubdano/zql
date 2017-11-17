@@ -5,12 +5,12 @@ from hashing import stringify_grammar
 
 def test_stringify_grammar():
     grammar = {
-        'a': {'type': '1', 'oneOrMore': '2', 'value': '3'},
-        'z': {'type': '4', 'oneOrMore': '5', 'value': '6'},
-        'c': {'type': '7', 'oneOrMore': '8', 'value': '9'},
+        'a': {'type': '1', 'oneOrMore': '2', 'isPrimary': 'f', 'value': '3'},
+        'z': {'type': '4', 'oneOrMore': '5', 'isPrimary': 'f', 'value': '6'},
+        'c': {'type': '7', 'oneOrMore': '8', 'isPrimary': 'f', 'value': '9'},
     }
     sgram = stringify_grammar(grammar)
-    assert sgram == '[["a", "1", "2", "3"], ["c", "7", "8", "9"], ["z", "4", "5", "6"]]'
+    assert sgram == '[["a", "1", "2", "f", "3"], ["c", "7", "8", "f", "9"], ["z", "4", "5", "f", "6"]]'
 
 
 def test_iter_rhs():
