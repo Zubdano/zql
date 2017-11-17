@@ -10,6 +10,7 @@ import getSearchText from '../plugin/utils/getSearchText';
 import './TextInput.scss';
 import {
   clearAll,
+  submitEvent,
   fetchAnnotation,
   fetchKeywords,
   keywordDecorator,
@@ -65,6 +66,9 @@ class TextInput extends Component {
       focusOffset: lastBlock.getLength(),
       hasFocus: true,
     });
+
+    this.props.submitEvent(contentState.getPlainText(' '));
+
     const clearContentState = Modifier.removeRange(contentState, allSelected, 'backward');
     const clearEditorState = EditorState.push(editorState, clearContentState, 'remove-range');
     const resetEditorState = EditorState.forceSelection(clearEditorState, clearContentState.getSelectionAfter());
@@ -119,4 +123,5 @@ export default connect(({textInputReducer}) => textInputReducer, {
   setEditorState,
   setSearchValue,
   setSuggestions,
+  submitEvent,
 })(TextInput);
