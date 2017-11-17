@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Button, Icon, Navbar } from 'react-materialize';
 import { NavLink, withRouter } from 'react-router-dom'
 
-import { auth } from '../requests/auth';
+import { Permissions, auth } from '../requests/auth';
 import './Header.scss';
 
 class Header extends Component {
@@ -18,9 +18,9 @@ class Header extends Component {
     ) : null;
     return (
       <Navbar brand='ZQL'>
-        <li><NavLink to="/">Text Input</NavLink></li>
-        <li><NavLink to="/events">Events</NavLink></li>
-        <li><NavLink to="/grammar">Grammar Editor</NavLink></li>
+        {auth.currentUser.permission <= Permissions.EDITOR && <li><NavLink to="/grammar">Grammar Editor</NavLink></li>}
+        {auth.currentUser.permission <= Permissions.WRITER && <li><NavLink to="/">Text Input</NavLink></li>}
+        {auth.currentUser.permission <= Permissions.READER && <li><NavLink to="/events">Events</NavLink></li>}
         {logoutButton}
       </Navbar>
     );
