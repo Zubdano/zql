@@ -9,6 +9,7 @@ GRAMMAR_URL = "http://localhost:2666/grammar/{}".format(GRAMMAR_ID)
 
 current_hash = ''
 root = None
+primary_keys = set()
 
 def fix_list(l, keywords):
     result = []
@@ -40,12 +41,13 @@ def verify_hash(data):
     return False
 
 def generate_file_from_data(data):
-    global root
+    global root, primary_keys
     if verify_hash(data):
         return root
 
     keywords = set(data['keywords'])
     variables = set(data['variables'])
+    primary_keys = set()
 
     grammar_folder_path = os.path.dirname(__file__) + "/" + GRAMMAR_FOLDER_NAME
     if not os.path.isdir(grammar_folder_path):
@@ -67,6 +69,9 @@ def generate_file_from_data(data):
                     grammar_file.write("OneOrMore({}, sep=',')".format(values))
                 else:
                     grammar_file.write(values)
+
+            if details['isPrimary']:
+                primary_keys.add(rulename)
 
             grammar_file.write('\n\n')
 
