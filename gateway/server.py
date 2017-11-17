@@ -10,7 +10,6 @@ from errors import APIError
 
 
 app = Flask(__name__)
-app.config['MONGO_DBNAME'] = 'gateway'
 mongo_uri = 'mongodb://{}:{}@ds259325.mlab.com:59325/zql'
 app.config['MONGO_URI'] = mongo_uri.format(os.environ['ZQL_MONGO_USER'], os.environ['ZQL_MONGO_PASS'])
 mongo = PyMongo(app)
@@ -84,7 +83,7 @@ def login():
 def new_user():
     username = request.json.get('username')
     password = request.json.get('password')
-    permission = request.json.get('permission')
+    permission = request.json.get('permission') # value of 0-2
 
     if username is None or password is None or permission is None:
         raise APIError('Missing username, password or permission', status_code=409)
@@ -105,7 +104,7 @@ def forward(path):
 
     forwarder = path.split('/')[0]
     if forwarder not in mapping:
-        return jsonify({'error': 'Path not found in mapping'}), 401
+        raise APIError('Path not found in mapping', 401)
 
     res, code = mapping[forwarder].make_request(
             path, request.method, request.data, copy_headers())

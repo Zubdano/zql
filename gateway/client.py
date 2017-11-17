@@ -1,7 +1,9 @@
 import requests
-import server
 
 from abc import ABCMeta, abstractmethod
+
+import server
+from auth import get_user_by_token
 
 
 class BaseClient(metaclass=ABCMeta):
@@ -16,6 +18,7 @@ class BaseClient(metaclass=ABCMeta):
     def _make_request(self, route, method, data, headers):
         # Returns: result[dict], status_code[int]
         pass
+
 
 class HttpClient(BaseClient):
     """
@@ -71,10 +74,10 @@ class AuthDecorator(ClientDecorator):
         if not user:
             raise Exception('Could not find user with token {}'.format(token))
 
-        headers['User.Id'] = str(user['_id'])
+        headers['User.Username'] = str(user['username'])
         headers['User.Permission'] = str(user['permission'])
 
         return self._next.make_request(route, method, data, headers)
 
     def _fetch_user(self, token):
-        return server.mongo.db.users.find_one({'token': token})
+        return get_user_by_token(server.mongo, token)
