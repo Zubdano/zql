@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { fromJS, List, Map } from 'immutable';
+import { Icon, Button, Collapsible, CollapsibleItem } from 'react-materialize';
+import moment from 'moment';
 
 import { fetchEvents } from '../state/events';
 import './Events.scss';
@@ -12,46 +14,49 @@ class Events extends Component {
     this.props.fetchEvents();
   }
 
-  renderEvent(properties) {
-    const renderedProperties = properties.map((values, propertyName, index) => {
+  singleLineProperties(properties) {
+    return properties.map((values, propertyName, index) => {
       if (typeof values === 'string') {
         values = fromJS([values]);
       }
-      const eachProperty = values.toJS().join(', ');
-      return (
-        <div className="Events-each-property" key={propertyName}>
-          <span className="Events-each-property-title">{propertyName}: </span>
-          {eachProperty}
-        </div>
-      );
-      
-    });
+      const allValues = values.toJS().join(', ');
+	  return propertyName + '=' + allValues;
+    }).join('; ');
+  }
 
-    return renderedProperties.toIndexedSeq().toJS();
+  computeTimeFromNow(createdAt) {
+    return moment(createdAt).fromNow();
   }
 
   renderEvents() {
     const events = this.props.events.map((event) => {
+      const eventHeader = (
+		<p style={{margin: 0, align: 'left'}}>
+          {this.singleLineProperties(event.get('properties'))}
+          <Icon>transfer_within_a_station</Icon>
+          <Icon>rowing</Icon>
+	      <span style={{float: 'right'}}>
+            {this.computeTimeFromNow(event.get('created_at'))}
+          </span>
+        </p>
+	  );
+
+      const eventJSON = JSON.stringify(event, null, 2);
       return (
-        <div className="Events-each-event" key={event.get('_id')}>
-          <div className="Events-each-event-title">Properties:</div>
-          {this.renderEvent(event.get('properties'))}
-        </div>
+        <CollapsibleItem className="eventItem" header={eventHeader} icon='pregnant_woman'>
+		  <div className="jsonBoxOuter"><pre className="jsonBox">{eventJSON}</pre></div>
+		</CollapsibleItem>
       );
     });
     return (
-      <div className="Events-all-events">
+      <Collapsible popout className="eventBox">
         {events}
-      </div>
+      </Collapsible>
     );
   }
 
   render() {
-    return (
-      <div>
-        {this.renderEvents()}
-      </div>
-    );
+    return this.renderEvents();
   }
 }
 
