@@ -41,29 +41,23 @@ class GrammarRuleFactory:
     def _get_func_string(self, rulename, details, keywords):
         res = "def {}(): ".format(rulename)
         if details['type'] == 'variable':
-            res += "return RegExMatch(r'{}')".format(details['value'][0][0])
+            res += "return RegExMatch(r'{}')".format(details['value'][0])
         elif details['type'] == 'rule':
             res += "return "
-            values = self._sanitize_values(details['value'], keywords)
+            final_value = ''
+
+            print(details)
+            if details['join'] == 'and':
+                final_value += "{}".format(", ".join(self._fix_list(details['value'], keywords)))
+            elif details['join'] == 'or':
+                final_value += "[{}]".format(", ".join(self._fix_list(details['value'], keywords)))
 
             if details['oneOrMore']:
-                res += "OneOrMore({}, sep=',')".format(values)
-            else:
-                res += values
+                final_value = "OneOrMore({}, sep=',')".format(final_value)
+
+            res += final_value
+
         return res
-
-    def _sanitize_values(self, values, keywords):
-        result = []
-        for value in values:
-            fixed_value = self._fix_list(value, keywords)
-            if len(fixed_value) == 1:
-                result.append(fixed_value[0])
-            else:
-                result.append(tuple(fixed_value))
-
-        if len(result) == 1:
-            return "{}".format(", ".join(result[0]))
-        return "[{}]".format(", ".join([str(v) for v in result]))
 
     def _fix_list(self, l, keywords):
         result = []
