@@ -7,6 +7,9 @@ GRAMMAR_FOLDER_NAME = "gen"
 GRAMMAR_ID = "5a0bc90e734d1d08bf70e0ff"
 GRAMMAR_URL = "http://localhost:2666/grammar/{}".format(GRAMMAR_ID)
 
+current_hash = ''
+root = None
+
 def fix_list(l, keywords):
     result = []
     for item in l:
@@ -29,7 +32,18 @@ def sanitize_values(values, keywords):
         return "{}".format(", ".join(result[0]))
     return "[{}]".format(", ".join(result))
 
+def verify_hash(data):
+    global current_hash
+    if data['hash'] == current_hash:
+        return True
+    current_hash = data['hash']
+    return False
+
 def generate_file_from_data(data):
+    global root
+    if verify_hash(data):
+        return root
+
     keywords = set(data['keywords'])
     variables = set(data['variables'])
 
