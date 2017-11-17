@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import './login.scss';
+import './LoginScreen.scss';
 import { auth } from '../requests/auth';
 
 class LoginScreen extends Component {
