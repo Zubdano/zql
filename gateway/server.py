@@ -110,7 +110,6 @@ def forward(path):
             path, request.method, request.data, copy_headers())
 
     resp = jsonify(res)
-    print(res, code)
     resp.status_code = code
     return resp
 
