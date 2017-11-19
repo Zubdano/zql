@@ -83,7 +83,7 @@ function receiveGrammar(data) {
     id: data[0]._id,
     grammar: grammar,
     variables: fromJS(data[0].variables).toSet(),
-    rules: fromJS([]).toSet(),
+    rules: fromJS(data[0].rules).toSet(),
   };
 }
 

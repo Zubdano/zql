@@ -1,5 +1,6 @@
 .Grammar-editor {
   margin-top: 2em;
+  padding-left: 0.8em;
 }
 
 .Grammar-editor-input-key {
@@ -42,16 +43,12 @@
 }
 
 .Grammar-editor-add-row-button {
-  padding: 0.15rem 0.5rem;
-  margin-top: 1em;
-  font-weight: 200;
-  font-size: 1.125rem;
-  letter-spacing: 0.0625rem;
-  line-height: 1.222222222222222;
-  background-color: #3ccfcf;
-  color: #fff;
-  border: none;
-  border-radius: 0.2em;
+  margin-right: 2em;
+  margin-bottom: 2em;
+}
+
+.Grammar-editor-change-grammar-button {
+  margin-bottom: 2em;
 }
 
 .Grammar-editor-remove-row-button {
@@ -97,4 +94,15 @@ input:focus {
 
 .Grammar-editor-remove-word {
   color: red;
+}
+
+
+.Grammar-editor-variable-chip {
+  background-color: #ffd3b6;
+  color: black;
+}
+
+.Grammar-editor-rule-chip {
+  background-color: #dcedc1;
+  color: black;
 }
