@@ -1,22 +1,12 @@
 import requests
 
-events = []
+submissions = []
 
 for i in range(10):
-    events.extend([
-        {
-            'user_id': 'ross{}'.format(i),
-            'properties': {
-                'disease': [ 'cancer' ],
-            },
-        },
-        {
-            'user_id': 'ross{}'.format(i),
-            'properties': {
-                'prescribed': [ 'chemo' ],
-            },
-        },
+    submissions.extend([
+        'diagnosed pranav{} with cancer'.format(chr(65+i)),
+        'performed chemo on pranav{}'.format(chr(65+i)),
     ])
 
-for event in events:
-    requests.post('http://localhost:2015/event', json=event)
+for submission in submissions:
+    requests.post('http://localhost:2015/event', json={'raw': submission})
