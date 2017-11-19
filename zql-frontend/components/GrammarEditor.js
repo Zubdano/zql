@@ -17,6 +17,7 @@ import {
   changeFocusClass,
   fetchGrammar,
   submitGrammar,
+  grammarValidityDisplayed,
 } from '../state/grammar';
 
 const InputFieldTypeEnum = {
@@ -72,6 +73,19 @@ class GrammarEditor extends Component {
 
     if (numChips !== this.state.numChips) {
       this.setState({numChips});
+    }
+
+    if (this.props.displayGrammarValidity) {
+      let msg =  "Succesfully updated grammar"
+      let time = 1500;
+
+      if (this.props.error) {
+        msg = "Error: " + this.props.error;
+        time = 4000;
+      }
+
+      Materialize.toast(msg, time);
+      this.props.grammarValidityDisplayed();
     }
   }
 
@@ -382,6 +396,7 @@ export default connect(({grammarReducer}) => grammarReducer, {
   changeFocusClass,
   fetchGrammar,
   submitGrammar,
+  grammarValidityDisplayed,
 })(GrammarEditor);
 
 //TODO

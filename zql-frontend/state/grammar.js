@@ -8,6 +8,7 @@ const GET_GRAMMAR_ROUTE = '/grammars';
 const CHANGE_GRAMMAR_ROUTE = '/grammar/';
 
 const RECEIVE_GRAMMAR = 'GRAMMAR_RECEIVE_GRAMMAR';
+const GRAMMAR_VALIDITY_DISPLAYED = 'GRAMMAR_VALIDITY_DISPLAYED';
 const RECEIVE_GRAMMAR_VALIDITY = 'GRAMMAR_RECEIVE_GRAMMAR_VALIDITY';
 const INPUT_FIELDS_CHANGED = 'GRAMMAR_INPUT_FIELDS_CHANGED';
 const RULES_CHANGED = 'GRAMMAR_RULES_LIST_CHANGED';
@@ -15,6 +16,7 @@ const VARIABLES_CHANGED = 'GRAMMAR_VARIABLES_LIST_CHANGED';
 
 const initialState = {
   error: null,
+  displayGrammarValidity: false,
   inputFields: fromJS({}),
   rules: fromJS([]).toSet(),
   variables: fromJS([]).toSet(),
@@ -35,9 +37,15 @@ function grammarReducer(state = initialState, action) {
         ...state,
         inputFields: action.grammar,
       };
+    case GRAMMAR_VALIDITY_DISPLAYED:
+      return {
+        ...state,
+        displayGrammarValidity: action.displayGrammarValidity,
+      }
     case RECEIVE_GRAMMAR_VALIDITY:
       return {
         ...state,
+        displayGrammarValidity: action.displayGrammarValidity,
         error: action.error,
       };
     case RULES_CHANGED:
@@ -49,7 +57,7 @@ function grammarReducer(state = initialState, action) {
       return {
         ...state,
         variables: action.variables,
-      }; 
+      };
     default:
       return state;
   }
@@ -87,9 +95,17 @@ function receiveGrammar(data) {
   };
 }
 
+function grammarValidityDisplayed() {
+  return {
+    type: GRAMMAR_VALIDITY_DISPLAYED,
+    displayGrammarValidity: false,
+  };
+}
+
 function receiveGrammarValidity(data) {
   return {
     type: RECEIVE_GRAMMAR_VALIDITY,
+    displayGrammarValidity: true,
     error: data.error, 
   };
 }
@@ -124,7 +140,6 @@ function submitGrammar(grammar, grammarId) {
   return (dispatch) => new Requestor(BASE_URL).post(CHANGE_GRAMMAR_ROUTE + grammarId, grammar)
     .then(json => dispatch(receiveGrammarValidity({})))
     .catch(error => dispatch(receiveGrammarValidity({error: error.message})));
-
 }
 
 function changeInputFields(inputFields) {
@@ -146,4 +161,5 @@ export {
   changeVariables,
   fetchGrammar,
   submitGrammar,
+  grammarValidityDisplayed,
 };
