@@ -383,7 +383,6 @@ class GrammarEditor extends Component {
         </Table>
         <Button className='Grammar-editor-add-row-button' onClick={this.addRow.bind(this)}>Add Row</Button>
         <Button className='Grammar-editor-change-grammar-button' onClick={this.changeGrammar.bind(this)}>Change Grammar</Button>
-        <div>{this.props.error}</div>
       </div>
     );
   }
