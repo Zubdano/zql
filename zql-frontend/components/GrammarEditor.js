@@ -22,6 +22,7 @@ import {
 const InputFieldTypeEnum = {
   VAR: 'variable',
   LHS: 'rule',
+  NA: 'none',
 }
 
 const NEW_ROW = {key: "", oneOrMore: false, isPrimary: false, join: 'and', value: []};
@@ -35,6 +36,11 @@ class GrammarEditor extends Component {
     };
   }
 
+  materialChip(chipsClass, data, variables, rules, inputs) {
+    $(chipsClass).material_chip(data);
+    this.updateChipsColors(variables, rules, inputs);
+  }
+
   componentDidUpdate() {
     let { numChips } = this.state;
     let focused = -1;
@@ -45,18 +51,20 @@ class GrammarEditor extends Component {
         return {tag: token};
       });
       data = { data: data.toJS() } 
+      // called when adding new row/loading initial data
       if (ruleIndex >= numChips) {
         numChips += 1;
-        $(chipsClass).material_chip(data);
+        this.materialChip(chipsClass, data, this.props.variables, this.props.rules, this.props.inputFields);
         $(chipsClass).on('chip.add',
           this.handleChipAdd.bind(this, ruleIndex));
         $(chipsClass).on('chip.delete',
           this.handleChipRemove.bind(this, ruleIndex));
       } else {
         if ($(chipsClass + ' .input').is(":focus")) focused = ruleIndex;
-        $(chipsClass).material_chip(data);
+        this.materialChip(chipsClass, data, this.props.variables, this.props.rules, this.props.inputFields);
       }
     }); 
+
     if (focused >= 0) {
       const chipsClass = '.chips-' + focused + ' .input';
       $(chipsClass).focus();
@@ -65,6 +73,23 @@ class GrammarEditor extends Component {
     if (numChips !== this.state.numChips) {
       this.setState({numChips});
     }
+  }
+
+  // set colors of all chips
+  updateChipsColors(variables, rules, inputs) {
+    inputs.map((row, ruleIndex) => {
+      row.get('value').map((chip, chipIndex) => {
+        $('.chips-' + ruleIndex).children().each((elemIndex, elem) => {
+          if ($(elem).is("div")) {
+            let type = this.getTypeElem(ruleIndex, elemIndex);
+            if (type == InputFieldTypeEnum.VAR)
+              $(elem).addClass('Grammar-editor-variable-chip');
+            if (type == InputFieldTypeEnum.LHS)
+              $(elem).addClass('Grammar-editor-rule-chip');
+          }
+        });
+      });
+    });
   }
 
   handleChipAdd(ruleIndex, e, chip) {
@@ -94,6 +119,9 @@ class GrammarEditor extends Component {
         newRulesSet = newRulesSet.add(row.get('key'));
       }
     });
+
+    this.updateChipsColors(newVariablesSet, newRulesSet, newInputFields);
+
     let chipsClass = 'chips-' + ruleIndex;
     $("." + chipsClass + " :input").focus();
     
@@ -107,17 +135,9 @@ class GrammarEditor extends Component {
     let wordIndex = this.props.inputFields.get(ruleIndex).get('value').findIndex((token) => {
       return token == chip.tag;
     });
+
     let newValueRow = this.props.inputFields.get(ruleIndex).get('value').delete(wordIndex);
     let newInputFields = this.props.inputFields.setIn([ruleIndex, 'value'], newValueRow);
-    // bug when you have an or and you remove most recent or'd values
-    /*if (newValueRow.size == 0 || (newValueRow.size == 1 && newValueRow.get(0) == "")) {
-      newValueRow = this.props.inputFields.get(ruleIndex).get('value').delete(valIndex);
-      if (newValueRow.size == 0 && this.props.inputFields.get(ruleIndex).get('value').size == 1) {
-        newValueRow = newValueRow.push(""); newInputFields = this.props.inputFields.setIn([ruleIndex, 'value', valIndex], newValueRow);
-      } else {
-        newInputFields = this.props.inputFields.setIn([ruleIndex, 'value'], newValueRow);
-      }
-    }*/
 
     // if regex removed from variable, remove variable from list of variables
     let keyOfRemovedWord = this.props.inputFields.get(ruleIndex).get('key')
@@ -164,6 +184,16 @@ class GrammarEditor extends Component {
     }
 
     return type;
+  }
+
+  getTypeElem(ruleIndex, valIndex) {
+    let elem = this.props.inputFields.getIn([ruleIndex, 'value', valIndex]);
+    if (this.props.rules.includes(elem)) 
+      return InputFieldTypeEnum.LHS;
+    if (this.props.variables.includes(elem))
+      return InputFieldTypeEnum.VAR;
+
+    return InputFieldTypeEnum.NA;
   }
 
   getSubmissionGrammar() {
@@ -237,6 +267,17 @@ class GrammarEditor extends Component {
   // remove the last rule
   removeRow(removeIndex) {
     let newInputFields = this.props.inputFields.delete(removeIndex);
+    let type = this.getType(this.props.inputFields.get(removeIndex));
+    let oldKey = this.props.inputFields.get(removeIndex).get('key');
+
+    if (type == InputFieldTypeEnum.VAR) {
+      let newVariablesSet = this.props.variables.delete(oldKey);
+      this.props.changeVariables(newVariablesSet); 
+    } else if (type == InputFieldTypeEnum.LHS) {
+      let newRulesSet = this.props.rules.delete(oldKey);
+      this.props.changeRules(newRulesSet); 
+    }
+
     this.props.changeInputFields(newInputFields);
     this.setState({numChips: this.state.numChips - 1});
   }
@@ -267,25 +308,6 @@ class GrammarEditor extends Component {
   }
 
   renderRule(row, index) {
-    // let numVals = row.get('value').size;
-    // let mappedValues = row.get('value').map((value, valIndex) => { // map through list of rhs values
-    //   let val = value;
-    //   if (valIndex == numVals - 1) 
-    //     val = value.slice(0, value.size - 1);
-    //   return (
-    //     <span key={valIndex}>
-    //       {val.map((token, tokenIndex) => {
-    //         return (
-    //           <span className="Grammar-editor-entered-word" key={tokenIndex}>{token}<span className='Grammar-editor-remove-word' onClick={this.removeWord.bind(this, index, valIndex, tokenIndex)}> x </span></span>
-    //         );
-    //       })}
-    //       {valIndex < numVals - 1 
-    //         ? <span className="Grammar-editor-entered-or"> OR </span>
-    //         : null
-    //       }
-    //     </span>
-    //   );
-    // });
     const or = row.get('join') === 'or';
     const oneOrMore = row.get('oneOrMore');
     const isPrimary = row.get('isPrimary');
@@ -322,19 +344,6 @@ class GrammarEditor extends Component {
   }
 
   renderRules() {
-    // this.props.inputFields.valueSeq().map((row, index) => { // map through list of lhs rules
-    //   let val = row.get('value').last().last();
-    //   return (
-    //     <div className="Grammar-editor-row" key={index}>
-    //       <input className='Grammar-editor-input-key' value={row.get('key')} onChange={this.inputFieldChange.bind(this, index, "key", -1)} />
-    //       {mappedValues}
-    //       <input className='Grammar-editor-input-value' value={val} onKeyPress={this.detectKeyPress.bind(this, index, numVals - 1)} onChange={this.inputFieldChange.bind(this, index, "value", numVals - 1)} />
-    //       <input type="checkbox" onChange={this.oneOrMore.bind(this, index)} />
-    //       <input type="checkbox" onChange={this.makePrimary.bind(this, index)} />
-    //       <button className="Grammar-editor-remove-row-button" onClick={this.removeRow.bind(this, index)}> Remove row </button>
-    //     </div>
-    //   );
-    // });
     const rules = this.props.inputFields.valueSeq().map((row, index) => {
       return this.renderRule(row, index);
     }, this);
@@ -358,8 +367,8 @@ class GrammarEditor extends Component {
           </thead>
           {this.renderRules()}
         </Table>
-        <Button onClick={this.addRow.bind(this)}>Add Row</Button>
-        <Button onClick={this.changeGrammar.bind(this)}>Change Grammar</Button>
+        <Button className='Grammar-editor-add-row-button' onClick={this.addRow.bind(this)}>Add Row</Button>
+        <Button className='Grammar-editor-change-grammar-button' onClick={this.changeGrammar.bind(this)}>Change Grammar</Button>
         <div>{this.props.error}</div>
       </div>
     );
