@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import { convertToRaw, ContentState, EditorState, Modifier, SelectionState } from 'draft-js';
 import Editor from 'draft-js-plugins-editor';
-import { Button } from 'react-materialize';
+import { Button, Icon } from 'react-materialize';
 import { List, fromJS } from 'immutable';
 import 'draft-js/dist/Draft.css';
 
@@ -86,6 +86,17 @@ class TextInput extends Component {
   render() {
     const { CompletionSuggestions } = this.props.autocompletePlugin;
     const plugins = [this.props.autocompletePlugin];
+    let icon = 'done';
+    let iconClass = 'Text-input-accept-status';
+
+    if (this.props.status === 'reject') {
+      icon = 'error';
+      iconClass = 'Text-input-reject-status';
+
+    } else if (this.props.status === 'incomplete' || this.props.editorState.getCurrentContent().getPlainText(' ') =='') {
+      icon = 'create';
+      iconClass = 'Text-input-incomplete-status';
+    }
 
     return (
       <div className='textInput'>
@@ -105,9 +116,14 @@ class TextInput extends Component {
             suggestions={this.props.suggestions}
           />
         </div>
-        <div className={`statusText-${this.props.status || 'incomplete'}`}>{this.props.status || 'incomplete'}</div>
+        <div>
+          <Icon className={iconClass} small>
+            {icon}
+          </Icon>
+        </div>
         <Button
           type="button"
+          className="Text-input-submit-button"
           onClick={this.handleSubmitClick}
           disabled={this.props.status !== 'accept'}
         >Submit</Button>
@@ -115,7 +131,7 @@ class TextInput extends Component {
     );
   }
 }
-
+//done create error
 export default connect(({textInputReducer}) => textInputReducer, {
   clearAll,
   fetchAnnotation,

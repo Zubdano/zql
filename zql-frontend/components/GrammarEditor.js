@@ -1,6 +1,5 @@
 //Assumptions
 // - user will not enter something like: patient - [a-zA-Z] asdf
-// - user will enter the key before a value
 // - primary key can only be a variable and a single variable
 
 import React, { Component } from 'react';
@@ -9,6 +8,7 @@ import { fromJS, List, Map } from 'immutable';
 import { Button, Input, Table } from 'react-materialize';
 import './GrammarEditor.scss'
 import classNames from 'classnames';
+import ReactLoading from 'react-loading';
 
 import {
   changeInputFields,
@@ -29,12 +29,20 @@ const InputFieldTypeEnum = {
 const NEW_ROW = {key: "", oneOrMore: false, isPrimary: false, join: 'and', value: []};
 
 class GrammarEditor extends Component {
-  // fetch initial grammar / use default value if none exists
-  componentDidMount() {
-    this.props.fetchGrammar();
+  constructor(props) {
+    super(props);
     this.state = {
       numChips: 0,
+      isLoading: true,
     };
+  }
+  // fetch initial grammar / use default value if none exists
+  componentDidMount() {
+    // load data
+    setTimeout(function() {
+      this.setState({isLoading: false});
+    }.bind(this), 2000)
+    this.props.fetchGrammar();
   }
 
   materialChip(chipsClass, data, variables, rules, inputs) {
@@ -350,7 +358,7 @@ class GrammarEditor extends Component {
             onChange={this.handleIsPrimary.bind(this, index)}/>
         </td>
         <td>
-          <Button floating large className='red' waves='light' icon='delete'
+          <Button className='Grammar-editor-remove-row-button' floating large={false} waves='light' icon='delete'
             onClick={this.removeRow.bind(this, index)}/>
         </td>
       </tr>
@@ -370,6 +378,13 @@ class GrammarEditor extends Component {
   }
 
   render() {
+    if (this.state.isLoading) {
+      return (
+        <div className='Grammar-editor-loading'>
+          <ReactLoading type="spin" color="#D5646A" />
+        </div>
+      );
+    }
     return (
       <div className="Grammar-editor">
         <Table>
@@ -398,5 +413,3 @@ export default connect(({grammarReducer}) => grammarReducer, {
   grammarValidityDisplayed,
 })(GrammarEditor);
 
-//TODO
-//5. If delete a variable regex - delete from variables array
