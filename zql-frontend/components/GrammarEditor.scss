@@ -52,17 +52,7 @@
 }
 
 .Grammar-editor-remove-row-button {
-  padding: 0.10rem 0.4rem;
-  margin-top: 1em;
-  margin-left: 0.5em;
-  font-weight: 200;
-  font-size: 1.125rem;
-  letter-spacing: 0.0325rem;
-  line-height: 1.0;
-  background-color: #3ccfff;
-  color: #fff;
-  border: none;
-  border-radius: 0.2em;
+  background-color: #ff6961;
 }
 
 .Grammar-editor-submit-button {
@@ -105,4 +95,11 @@ input:focus {
 .Grammar-editor-rule-chip {
   background-color: #dcedc1;
   color: black;
+}
+
+.Grammar-editor-loading {
+  marging-top: 15em;
+  position: absolute;
+  top: 30%;
+  left: 50%;
 }

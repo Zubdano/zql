@@ -3,14 +3,25 @@ import { connect } from 'react-redux';
 import { fromJS, List, Map } from 'immutable';
 import { Col, Card, CardTitle, Icon, Button, Collapsible, CollapsibleItem } from 'react-materialize';
 import moment from 'moment';
+import ReactLoading from 'react-loading';
 
 import { fetchEvents } from '../state/events';
 import './Events.scss';
 
 
 class Events extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLoading: true,
+    }
+  }
 
   componentDidMount() {
+    // load data
+    setTimeout(function() {
+      this.setState({isLoading: false});
+    }.bind(this), 2000)
     this.props.fetchEvents();
   }
 
@@ -54,7 +65,7 @@ class Events extends Component {
   }
 
   renderEvents() {
-    const events = this.props.events.get('eventlog').map((event) => {
+    const events = this.props.events.get('eventlog').map((event, index) => {
     const eventHeader = (
       <p style={{margin: 0, align: 'left'}}>
         <span className="rule">{event.get('rule')}</span>
@@ -67,7 +78,7 @@ class Events extends Component {
 
       const eventJSON = JSON.stringify(event, null, 2);
       return (
-        <CollapsibleItem className="eventItem" header={eventHeader} icon='event_note'>
+        <CollapsibleItem key={index} className="eventItem" header={eventHeader} icon='event_note'>
       <div className="jsonBoxOuter"><pre className="jsonBox">{eventJSON}</pre></div>
     </CollapsibleItem>
       );
@@ -83,6 +94,13 @@ class Events extends Component {
   }
 
   render() {
+    if (this.state.isLoading) {
+      return (
+        <div className='Grammar-editor-loading'>
+          <ReactLoading type="spin" color="#D5646A" />
+        </div>
+      );
+    }
     return this.renderEvents();
   }
 }
