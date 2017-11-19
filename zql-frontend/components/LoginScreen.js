@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './LoginScreen.scss';
-import { Button } from 'react-materialize';
+import { Button, Preloader } from 'react-materialize';
+import ReactLoading from 'react-loading';
 
 import { auth } from '../requests/auth';
 
@@ -10,9 +11,10 @@ class LoginScreen extends Component {
     super(props);
 
     this.state = {
-      'username': null,
-      'password': null,
-      'error': null,
+      username: null,
+      password: null,
+      error: null,
+      isLoading: false,
     };
   }
 
@@ -24,14 +26,16 @@ class LoginScreen extends Component {
     } = this.state;
 
     if (!username || !password) {
-      this.setState({'error': 'Please enter a username or password'});
+      this.setState({error: 'Please enter a username or password'});
       return;
     }
+    this.setState({isLoading: true});
 
-    this.setState({'error': null});
+    this.setState({error: null});
     auth.login(username, password, success => {
+      this.setState({isLoading: false})
       if (!success) {
-        this.setState({'error': 'Invalid username or password'});
+        this.setState({error: 'Invalid username or password'});
         return;
       }
 
@@ -66,7 +70,13 @@ class LoginScreen extends Component {
           onChange={this.handlePasswordChange}
           type="password"
         />
-        <Button onClick={this.handleSubmit}>Login</Button>
+        { this.state.isLoading ?
+          <Preloader
+            className="loginSpinner"
+            size="small"
+            /> :
+            <Button onClick={this.handleSubmit}>Login</Button>
+        }
         {error}
       </form>
     );
