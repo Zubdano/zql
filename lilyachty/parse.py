@@ -1,6 +1,9 @@
 from graph import iter_rhs
 
 
+def get_user_id_rules(grammar):
+    return list(filter(lambda lhs: grammar[lhs]['isPrimary'], grammar.keys()))
+
 def generate_keywords_and_variables(grammar):
     keywords = set()
     variables = []

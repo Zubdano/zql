@@ -46,7 +46,6 @@ class GrammarRuleFactory:
             res += "return "
             final_value = ''
 
-            print(details)
             if details['join'] == 'and':
                 final_value += "{}".format(", ".join(self._fix_list(details['value'], keywords)))
             elif details['join'] == 'or':

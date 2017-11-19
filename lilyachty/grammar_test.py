@@ -1,16 +1,38 @@
 from graph import iter_rhs, verify_structure, construct_graph
-from parse import generate_keywords_and_variables
+from parse import generate_keywords_and_variables, get_user_id_rules
 from hashing import stringify_grammar
 
 
+def test_get_user_id_rules():
+    grammar = {
+        'a': {'isPrimary': True, 'value': '3'},
+        'z': {'isPrimary': False, 'value': '6'},
+        'c': {'isPrimary': False, 'value': '9'},
+    }
+    assert len(get_user_id_rules(grammar)) == 1
+
+    grammar = {
+        'a': {'isPrimary': True, 'value': '3'},
+        'z': {'isPrimary': True, 'value': '6'},
+        'c': {'isPrimary': False, 'value': '9'},
+    }
+    assert len(get_user_id_rules(grammar)) == 2
+
+    grammar = {
+        'a': {'isPrimary': False, 'value': '3'},
+        'z': {'isPrimary': False, 'value': '6'},
+        'c': {'isPrimary': False, 'value': '9'},
+    }
+    assert len(get_user_id_rules(grammar)) == 0
+
 def test_stringify_grammar():
     grammar = {
-        'a': {'type': '1', 'oneOrMore': '2', 'isPrimary': 'f', 'value': '3'},
-        'z': {'type': '4', 'oneOrMore': '5', 'isPrimary': 'f', 'value': '6'},
-        'c': {'type': '7', 'oneOrMore': '8', 'isPrimary': 'f', 'value': '9'},
+        'a': {'type': '1', 'oneOrMore': '2', 'isPrimary': 'f', 'value': '3', 'join': 'and'},
+        'z': {'type': '4', 'oneOrMore': '5', 'isPrimary': 'f', 'value': '6', 'join': 'and'},
+        'c': {'type': '7', 'oneOrMore': '8', 'isPrimary': 'f', 'value': '9', 'join': 'and'},
     }
     sgram = stringify_grammar(grammar)
-    assert sgram == '[["a", "1", "2", "f", "3"], ["c", "7", "8", "f", "9"], ["z", "4", "5", "f", "6"]]'
+    assert sgram == '[["a", "1", "2", "f", "and", "3"], ["c", "7", "8", "f", "and", "9"], ["z", "4", "5", "f", "and", "6"]]'
 
 
 def test_iter_rhs():
@@ -115,6 +137,7 @@ def test_verify_structure():
 
 
 if __name__ != 'vasansr':
+    test_get_user_id_rules()
     test_stringify_grammar()
     test_iter_rhs()
     test_verify_structure()

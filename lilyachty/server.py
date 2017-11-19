@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from graph import construct_graph, verify_structure
-from parse import generate_keywords_and_variables
+from parse import generate_keywords_and_variables, get_user_id_rules
 from hashing import hash_grammar
 from persist import persist_grammar
 
@@ -45,6 +45,11 @@ def update_grammar(grammar_id):
     valid, reason, rules = verify_structure(graph)
     if not valid:
         return jsonify({'error': reason}), 400
+
+    user_id_rules = get_user_id_rules(grammar)
+    if len(user_id_rules) > 1:
+        msg = 'Only one of {} can be the user id'.format(', '.join(user_id_rules))
+        return jsonify({'error': msg}), 400
 
     # Parse to generate the keywords and variables from the grammar.
     keywords, variables = generate_keywords_and_variables(grammar)
