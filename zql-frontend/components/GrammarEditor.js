@@ -81,7 +81,7 @@ class GrammarEditor extends Component {
     }
 
     if (this.props.displayGrammarValidity) {
-      let msg =  "Succesfully updated grammar"
+      let msg =  "Successfully updated grammar"
       let time = 1500;
 
       if (this.props.error) {
