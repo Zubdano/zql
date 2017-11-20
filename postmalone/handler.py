@@ -48,6 +48,11 @@ class EventPushHandler(BaseHandler):
         Pushes event to the task queue.
         """
         event = request.json['raw']
+        permission = request.headers.get('User.Permission')
+
+        if permission is None or int(permission) > 1:
+            return jsonify({'error': 'not allowed'}), 400
+
         try:
             process_event.delay(event)
             return jsonify({'success': True})

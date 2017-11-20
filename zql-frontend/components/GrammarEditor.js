@@ -233,7 +233,6 @@ class GrammarEditor extends Component {
         join: row.get('join'),
         value: newValues,
       }));
-      console.log(submissionGrammar.toJS());
     });
     return submissionGrammar;
   }
@@ -376,7 +375,6 @@ class GrammarEditor extends Component {
 
   render() {
     if (this.state.isLoading) {
-      console.log(this.state.isLoading);
       return (
         <div className='Grammar-editor-loading'>
           <Preloader flashing />
