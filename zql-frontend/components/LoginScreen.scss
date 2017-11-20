@@ -13,8 +13,13 @@
 
 .loginContainer {
   display: inline-block;
+  margin-top: 20px;
 }
 
 .loginError {
   color: red;
+}
+
+.loginSpinner {
+  margin: auto;
 }

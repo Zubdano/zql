@@ -34,13 +34,15 @@ class Events extends Component {
   maybeRenderPredicted() {
     const predicted = this.props.events.get('predicted');
 
-    if (this.props.events.get('predicted') !== null) {
+    if (predicted !== null) {
       const eventJSON = JSON.stringify(predicted.get('properties'), null, 2);
       const title = (
         <div>
         <Icon className="yellow-text">error</Icon>
         {' '}
-        Predicted event with probability <span style={{"font-weight": "bold"}}>{predicted.get('prob').toFixed(2) * 100}%</span>
+        Predicted <span style={{"font-weight": "bold"}}>{predicted.get('rule')}</span>
+        {' '}
+        event with probability <span style={{"font-weight": "bold"}}>{predicted.get('prob').toFixed(2) * 100}%</span>
         {' '}
         <Icon className="yellow-text">error</Icon>
         </div>
