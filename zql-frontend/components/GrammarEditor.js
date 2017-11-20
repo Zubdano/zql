@@ -5,10 +5,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import { fromJS, List, Map } from 'immutable';
-import { Button, Input, Table } from 'react-materialize';
+import { Button, Preloader, Input, Table } from 'react-materialize';
 import './GrammarEditor.scss'
 import classNames from 'classnames';
-import ReactLoading from 'react-loading';
 
 import {
   changeInputFields,
@@ -33,16 +32,14 @@ class GrammarEditor extends Component {
     super(props);
     this.state = {
       numChips: 0,
-      isLoading: true,
+      isLoading: false,
     };
   }
   // fetch initial grammar / use default value if none exists
   componentDidMount() {
     // load data
-    setTimeout(function() {
-      this.setState({isLoading: false});
-    }.bind(this), 2000)
-    this.props.fetchGrammar();
+    this.setState({isLoading: true});
+    this.props.fetchGrammar(() => this.setState({isLoading: false}));
   }
 
   materialChip(chipsClass, data, variables, rules, inputs) {
@@ -379,9 +376,10 @@ class GrammarEditor extends Component {
 
   render() {
     if (this.state.isLoading) {
+      console.log(this.state.isLoading);
       return (
         <div className='Grammar-editor-loading'>
-          <ReactLoading type="spin" color="#D5646A" />
+          <Preloader flashing />
         </div>
       );
     }

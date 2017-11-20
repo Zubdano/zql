@@ -30,10 +30,13 @@ function receiveEvents(events) {
   };
 }
 
-function fetchEvents() {
+function fetchEvents(cb) {
   // TODO: Fetch for particular user_id, probably using auth
   return (dispatch) => new Requestor(BASE_URL).get(GET_EVENTS_ROUTE)
-    .then(json => dispatch(receiveEvents(json)));
+    .then(json => {
+      if (cb) cb();
+      dispatch(receiveEvents(json));
+    });
 }
 
 export {
