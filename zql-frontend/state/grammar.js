@@ -131,9 +131,12 @@ function variablesChanged(variables) {
   }
 }
 
-function fetchGrammar() {
+function fetchGrammar(cb) {
   return (dispatch) => new Requestor(BASE_URL).get(GET_GRAMMAR_ROUTE)
-    .then(json => {dispatch(receiveGrammar(json));});
+    .then(json => {
+      if (cb) cb();
+      dispatch(receiveGrammar(json));
+    });
 }
 
 function submitGrammar(grammar, grammarId) {
