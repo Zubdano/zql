@@ -37,6 +37,7 @@ const MainRouter = () => {
       <Switch>
         {routes}
         <Route path='/login' component={LoginScreen}/>
+        <Redirect from='/' to='/events'/>
       </Switch>
     </main>
   );
