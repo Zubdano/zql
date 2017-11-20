@@ -40,7 +40,7 @@ class LoginScreen extends Component {
       }
 
       const state = this.props.location.state;
-      const pathname = state ? state.pathname : '/input';
+      const pathname = state ? state.pathname : '/events';
 
       this.props.history.replace(pathname);
     })

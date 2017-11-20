@@ -67,7 +67,13 @@ class GrammarEditor extends Component {
           this.handleChipRemove.bind(this, ruleIndex));
       } else {
         if ($(chipsClass + ' .input').is(":focus")) focused = ruleIndex;
+        $(chipsClass).off('chip.add');
+        $(chipsClass).off('chip.delete');
         this.materialChip(chipsClass, data, this.props.variables, this.props.rules, this.props.inputFields);
+        $(chipsClass).on('chip.add',
+          this.handleChipAdd.bind(this, ruleIndex));
+        $(chipsClass).on('chip.delete',
+          this.handleChipRemove.bind(this, ruleIndex));
       }
     }); 
 

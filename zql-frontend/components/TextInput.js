@@ -108,7 +108,7 @@ class TextInput extends Component {
             decorators={[keywordDecorator]}
             spellCheck
             stripPastedStyles
-            placeholder='Enter some text, with a # to see the issue autocompletion'
+            placeholder='Start typing...'
             ref='editor'
           />
           <CompletionSuggestions

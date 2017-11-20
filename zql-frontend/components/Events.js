@@ -73,24 +73,28 @@ class Events extends Component {
   }
 
   renderEvents() {
-    const events = this.props.events.get('eventlog').map((event, index) => {
-    const eventHeader = (
-      <p style={{margin: 0, align: 'left'}}>
-        <span className="rule">{event.get('rule')}</span>
-        [{this.singleLineProperties(event.get('properties'))}]
-        <span style={{float: 'right'}}>
-            {this.computeTimeFromNow(event.get('created_at'))}
-        </span>
-      </p>
-    );
+    let events = <h5>No events</h5>;
 
-      const eventJSON = JSON.stringify(event, null, 2);
-      return (
-        <CollapsibleItem key={index} className="eventItem" header={eventHeader} icon='event_note'>
-      <div className="jsonBoxOuter"><pre className="jsonBox">{eventJSON}</pre></div>
-    </CollapsibleItem>
-      );
-    });
+    if (this.props.events.length > 0) {
+      events = this.props.events.get('eventlog').map((event, index) => {
+        const eventHeader = (
+          <p style={{margin: 0, align: 'left'}}>
+            <span className="rule">{event.get('rule')}</span>
+            [{this.singleLineProperties(event.get('properties'))}]
+            <span style={{float: 'right'}}>
+                {this.computeTimeFromNow(event.get('created_at'))}
+            </span>
+          </p>
+        );
+
+        const eventJSON = JSON.stringify(event, null, 2);
+        return (
+          <CollapsibleItem key={index} className="eventItem" header={eventHeader} icon='event_note'>
+            <div className="jsonBoxOuter"><pre className="jsonBox">{eventJSON}</pre></div>
+          </CollapsibleItem>
+        );
+      });
+    }
     return (
       <div>
         {this.maybeRenderPredicted()}

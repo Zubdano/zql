@@ -10,7 +10,7 @@ function renderWithAuth(component, props) {
   const Comp = component;
   if (!auth.loggedIn) {
     return <Redirect to={{
-      pathname: '/events',
+      pathname: '/login',
       state: { pathname: props.location.pathname }
     }}/>;
   }
@@ -37,7 +37,7 @@ const MainRouter = () => {
       <Switch>
         {routes}
         <Route path='/login' component={LoginScreen}/>
-        <Redirect from='/' to='/events'/>
+        <Redirect exact from='/' to='/events'/>
       </Switch>
     </main>
   );
