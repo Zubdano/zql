@@ -73,7 +73,7 @@ class LoginScreen extends Component {
         { this.state.isLoading ?
           <Preloader
             className="loginSpinner"
-            size="small"
+            flashing
             /> :
             <Button onClick={this.handleSubmit}>Login</Button>
         }
