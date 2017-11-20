@@ -59,14 +59,14 @@ class LoginScreen extends Component {
     return (
       <form action="#" className="loginContainer">
         <input
-          placeholder="Username"
           className="loginElement"
+          placeholder="Username"
           onChange={this.handleUsernameChange}
           type="text"
         />
         <input
-          placeholder="Password"
           className="loginElement"
+          placeholder="Password"
           onChange={this.handlePasswordChange}
           type="password"
         />
