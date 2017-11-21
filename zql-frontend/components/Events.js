@@ -75,7 +75,7 @@ class Events extends Component {
   renderEvents() {
     let events = <h5>No events</h5>;
 
-    if (this.props.events.length > 0) {
+    if (this.props.events.get('eventlog').size > 0) {
       events = this.props.events.get('eventlog').map((event, index) => {
         const eventHeader = (
           <p style={{margin: 0, align: 'left'}}>

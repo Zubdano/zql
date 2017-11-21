@@ -32,6 +32,10 @@ class TextInput extends Component {
     this.props.fetchKeywords();
   }
 
+  componentWillUnmount() {
+    this.clearAllState();
+  }
+
   setEditorState(editorState) {
     // idk why I need to keep this in state but the plugin uses it for some reason (???)
     this.setState(editorState)
@@ -43,7 +47,6 @@ class TextInput extends Component {
     const newContent = editorState.getCurrentContent();
     if (oldContent !== newContent) {
       // content changed, need to refetch annotations
-      // TODO: only fetch annotations for block that changed
       this.props.fetchAnnotation(newContent.getPlainText(' '));
 
       const currentSelectionState = editorState.getSelection();
@@ -57,29 +60,16 @@ class TextInput extends Component {
   handleSubmitClick = () => {
     const editorState = this.props.editorState;
     const contentState = editorState.getCurrentContent();
-    const firstBlock = contentState.getFirstBlock();
-    const lastBlock = contentState.getLastBlock();
-    const allSelected = new SelectionState({
-      anchorKey: firstBlock.getKey(),
-      anchorOffset: 0,
-      focusKey: lastBlock.getKey(),
-      focusOffset: lastBlock.getLength(),
-      hasFocus: true,
-    });
-
     this.props.submitEvent(contentState.getPlainText(' '));
+    this.clearAllState();
+  }
 
-    const clearContentState = Modifier.removeRange(contentState, allSelected, 'backward');
-    const clearEditorState = EditorState.push(editorState, clearContentState, 'remove-range');
-    const resetEditorState = EditorState.forceSelection(clearEditorState, clearContentState.getSelectionAfter());
+  clearAllState() {
+    const editorState = this.props.editorState;
+    const resetEditorState = EditorState.push(editorState, ContentState.createFromText(''));
     this.setEditorState(resetEditorState);
     this.props.clearAll();
   }
-
-  logState = () => {
-    const content = this.props.editorState.getCurrentContent();
-    console.log(convertToRaw(content));
-  };
 
   focus = () => this.refs.editor.focus();
 
