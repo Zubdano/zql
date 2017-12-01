@@ -118,4 +118,3 @@ class Events extends Component {
 }
 
 export default connect(({eventsReducer}) => eventsReducer, {fetchEvents})(Events);
-// TODO: change so that it works with the different kind of data

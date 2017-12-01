@@ -136,7 +136,7 @@ def test_verify_structure():
     assert rules == ['a', 'b', 'c', 'd']
 
 
-if __name__ != 'vasansr':
+if __name__ == '__main__':
     test_get_user_id_rules()
     test_stringify_grammar()
     test_iter_rhs()
