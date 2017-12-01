@@ -16,8 +16,6 @@ mongo = PyMongo(app)
 
 
 # Initialize clients for all of our services.
-# TODO: abstract away all the base URLs. These will be diff when we run on heroku.
-# TODO: ping the server.
 grammar        = AuthDecorator(HttpClient('http://127.0.0.1:2666/'))
 interpreter    = AuthDecorator(HttpClient('http://127.0.0.1:2020/'))
 postprocessing = AuthDecorator(HttpClient('http://127.0.0.1:2015/'))
@@ -25,14 +23,14 @@ postprocessing = AuthDecorator(HttpClient('http://127.0.0.1:2015/'))
 mapping = {
     # Interpreter Service forwarders
     'interpret': interpreter,
-    'keywords': interpreter, # TODO: move this to grammar service
+    'keywords': interpreter,
 
     # Grammar Service forwarders
     'grammar': grammar,
     'grammars': grammar,
 
     # Postprocessing Service forwarders
-    'event': postprocessing, # TODO: wtf does this do?
+    'event': postprocessing,
     'events': postprocessing,
 }
 

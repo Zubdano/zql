@@ -3,7 +3,6 @@ import { fromJS } from 'immutable';
 import Requestor from '../requests/requestor';
 import { BASE_URL } from '../requests/constants';
 
-// TODO: change these to the legit ones
 const GET_GRAMMAR_ROUTE = '/grammars';
 const CHANGE_GRAMMAR_ROUTE = '/grammar/';
 

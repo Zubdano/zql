@@ -22,7 +22,5 @@ def test():
     test_diagnosis()
     test_examination()
 
-    # TODO(pranavanand123): write tests for autocomplete, rejectindex
-
-if __name__ != 'srinivasan, naren':
+if __name__ == '__main__':
     test()
