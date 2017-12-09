@@ -4,7 +4,7 @@ from flask import request, jsonify
 from redis import RedisError
 import pymongo
 
-from jobs import process_event
+from jobs import process_event_data
 
 
 class BaseHandler(object):
@@ -47,14 +47,18 @@ class EventPushHandler(BaseHandler):
         """
         Pushes event to the task queue.
         """
-        event = request.json['raw']
+        username = request.headers.get('User.Username')
         permission = request.headers.get('User.Permission')
 
         if permission is None or int(permission) > 1:
-            return jsonify({'error': 'not allowed'}), 400
+            return jsonify({'error': 'not allowed'}), 409
 
+        data = {
+            'author': username,
+            'input': request.json['input'],
+        }
         try:
-            process_event.delay(event)
+            process_event_data.delay(data)
             return jsonify({'success': True})
         except RedisError:
             return jsonify({'success': False})
@@ -68,6 +72,24 @@ class GetEventsHandler(BaseHandler):
     view_name = 'get_events'
     methods = ['GET']
 
+    EVENT_OUTPUT_FIELDS = [
+        'created_at',
+        'user_id',
+        'properties',
+        'rule',
+        'author',
+        'input',
+    ]
+
+    PREDICTED_EVENT_OUTPUT_FIELDS = [
+        'created_at',
+        'user_id',
+        'properties',
+        'rule',
+        'author',
+        'prob',
+    ]
+
     def __init__(self, mongo):
         """
         @param mongo: mongo client
@@ -80,20 +102,23 @@ class GetEventsHandler(BaseHandler):
         """
         # TODO: Handle errors
         user_id = request.headers.get('User.Username')
+        permission = int(request.headers.get('User.Permission'))
 
         if user_id is None:
             return jsonify([])
 
-        cursor = self.mongo.db.events.find({'user_id': user_id}).sort('created_at', pymongo.DESCENDING)
+        # Want to find events that the user authored or was tagged in.
+        query = {'$or': [{'user_id': user_id}, {'author': user_id}]}
+        if permission == 0:
+            # Sysadmin can see everything.
+            query = {}
+        cursor = self.mongo.db.events.find(query).sort('created_at', pymongo.DESCENDING)
         events = []
-        predicted = None
+        predicted = []
         for event in cursor:
-            event['_id'] = str(event['_id'])
-
             if event.get('predicted', False):
-                assert not predicted
-                predicted = event
+                predicted.append({f: event[f] for f in self.PREDICTED_EVENT_OUTPUT_FIELDS})
             else:
-                events.append(event)
+                events.append({f: event[f] for f in self.EVENT_OUTPUT_FIELDS})
 
         return jsonify({'predicted': predicted, 'eventlog': events})

@@ -414,4 +414,3 @@ export default connect(({grammarReducer}) => grammarReducer, {
   submitGrammar,
   grammarValidityDisplayed,
 })(GrammarEditor);
-

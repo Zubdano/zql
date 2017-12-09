@@ -14,6 +14,7 @@ INCOMPLETE = 'incomplete'
 def parse_sentence(sentence, root_rule):
     parser = ParserPython(root_rule)
     res = {
+        'input': sentence,
         'rule': None,
         'status': None,
         'properties': {},
@@ -65,7 +66,7 @@ def parse_properties(grammar_node):
     for rule in grammar_node:
         if rule.rule_name != '':
             if isinstance(rule, Iterable):
-                # TODO: this happens in the case that a rule is
+                # NOTE: this happens in the case that a rule is
                 # an xor of potential values. Thus, we would get
                 # a list containing solely the value.
                 # E.g. disease -> [hiv]

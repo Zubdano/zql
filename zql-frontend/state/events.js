@@ -31,7 +31,6 @@ function receiveEvents(events) {
 }
 
 function fetchEvents(cb) {
-  // TODO: Fetch for particular user_id, probably using auth
   return (dispatch) => new Requestor(BASE_URL).get(GET_EVENTS_ROUTE)
     .then(json => {
       if (cb) cb();

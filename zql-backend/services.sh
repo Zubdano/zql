@@ -1,8 +1,8 @@
 #!/bin/bash
 
-postmalone_port=2015
+post_processing_port=2015
 interpreter_port=2020
-lilyachty_port=2666
+grammar_persistence_port=2666
 gateway_port=2420
 
 function usage() {
@@ -27,15 +27,15 @@ function killonport() {
 
 if [ "$1" == "start" ]; then
     maybestart "interpreter" "$2" $interpreter_port
-    maybestart "lilyachty" "$2" $lilyachty_port
-    maybestart "postmalone" "$2" $postmalone_port
+    maybestart "grammar_persistence" "$2" $grammar_persistence_port
+    maybestart "post_processing" "$2" $post_processing_port
 
     # Start gateway last.
     maybestart "gateway" "$2" $gateway_port
 elif [ "$1" == "stop" ]; then
     killonport $interpreter_port
-    killonport $lilyachty_port
-    killonport $postmalone_port
+    killonport $grammar_persistence_port
+    killonport $post_processing_port
     killonport $gateway_port
 else
     usage
