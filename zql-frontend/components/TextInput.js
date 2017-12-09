@@ -115,7 +115,6 @@ class TextInput extends Component {
           type="button"
           className="Text-input-submit-button"
           onClick={this.handleSubmitClick}
-          disabled={this.props.status !== 'accept'}
         >Submit</Button>
       </div>
     );

@@ -12,10 +12,13 @@ import {
   CollapsibleItem,
 } from 'react-materialize';
 import moment from 'moment';
+import { Permissions, auth } from '../requests/auth';
+
 
 import { fetchEvents } from '../state/events';
 import './Events.scss';
 
+const MAX_LEN_HEADER = 35;
 
 class Events extends Component {
   constructor(props) {
@@ -31,41 +34,76 @@ class Events extends Component {
     this.props.fetchEvents(() => this.setState({isLoading: false}));
   }
 
-  maybeRenderPredicted() {
-    const predicted = this.props.events.get('predicted');
+  getEventHeader(event) {
+    let authorOrUser = 'user_id';
 
-    if (predicted !== null) {
-      const eventJSON = JSON.stringify(predicted.get('properties'), null, 2);
-      const title = (
-        <div>
-        <Icon className="yellow-text">error</Icon>
-        {' '}
-        Predicted <span style={{"font-weight": "bold"}}>{predicted.get('rule')}</span>
-        {' '}
-        event with probability <span style={{"font-weight": "bold"}}>{predicted.get('prob').toFixed(2) * 100}%</span>
-        {' '}
-        <Icon className="yellow-text">error</Icon>
-        </div>
-      )
-      return (
-        <Card className='predictedBox' textClassName='white-text' title={title} >
-          <div className="jsonBoxOuter">
-            <pre className="jsonBox">{eventJSON}</pre>
-            <span style={{"text-align": "right", "margin-bottom": ".1em", "display": "block"}}>{this.computeTimeFromNow(predicted.get('created_at'))}</span>
-          </div>
-        </Card>
-      );
+    if (auth.currentUser.permission == Permissions.READER) {
+      authorOrUser = 'author';
+    }
+
+    let eventTitle = event.get(authorOrUser).toUpperCase() + ' - ' + event.get('rule');
+    let ruleInformation = this.singleLineProperties(event.get('properties'));
+
+    if (event.get('rule') == null) {
+      eventTitle = event.get('input');
+      const inputLen = eventTitle.length;
+
+      if (inputLen > MAX_LEN_HEADER) {
+        eventTitle = eventTitle.substring(0, MAX_LEN_HEADER - 3) + '...';
+      }
+
+      ruleInformation = '';
+    }
+
+    return (
+      <p className="eventHeaderP">
+        <span className="rule">{eventTitle}</span>
+        <span>{ruleInformation}</span>
+        <span className="eventHeaderTime">
+            {this.computeTimeFromNow(event.get('created_at'))}
+        </span>
+      </p>
+    );
+  }
+
+  maybeRenderPredicted() {
+    let allPredicted = this.props.events.get('predicted');
+
+    if (allPredicted !== null) {
+      const renderedPredicted = allPredicted.map((predicted, index) => {
+          const eventJSON = JSON.stringify(predicted.get('properties'), null, 2);
+          const title = (
+            <div>
+              <Icon className="yellow-text">error</Icon>
+              {' '}
+              Predicted <span className="fontWeightBold">{predicted.get('rule')}</span>
+              {' '}
+              event with probability <span className="fontWeightBold">{predicted.get('prob').toFixed(2) * 100}%</span>
+              {' '}
+              <Icon className="yellow-text">error</Icon>
+            </div>
+          )
+          return (
+            <Card className='predictedBox' textClassName='white-text' title={title} key={index}>
+              <div className="jsonBoxOuter">
+                <pre className="jsonBox">{eventJSON}</pre>
+                <span className="predictedTime">{this.computeTimeFromNow(predicted.get('created_at'))}</span>
+              </div>
+            </Card>
+          );
+      });
+      return renderedPredicted;
     }
   }
 
   singleLineProperties(properties) {
-    return properties.map((values, propertyName, index) => {
+    return '[' + properties.map((values, propertyName, index) => {
       if (typeof values === 'string') {
         values = fromJS([values]);
       }
       const allValues = values.toJS().join(', ');
     return propertyName + '=' + allValues;
-    }).join('; ');
+    }).join('; ') + ']';
   }
 
   computeTimeFromNow(createdAt) {
@@ -73,28 +111,24 @@ class Events extends Component {
   }
 
   renderEvents() {
-    let events = <h5>No events</h5>;
+    if (this.props.events.get('eventlog').size == 0)
+      return (<h5>No events</h5>);
 
-    if (this.props.events.get('eventlog').size > 0) {
-      events = this.props.events.get('eventlog').map((event, index) => {
-        const eventHeader = (
-          <p style={{margin: 0, align: 'left'}}>
-            <span className="rule">{event.get('rule')}</span>
-            [{this.singleLineProperties(event.get('properties'))}]
-            <span style={{float: 'right'}}>
-                {this.computeTimeFromNow(event.get('created_at'))}
-            </span>
-          </p>
-        );
-
-        const eventJSON = JSON.stringify(event, null, 2);
-        return (
-          <CollapsibleItem key={index} className="eventItem" header={eventHeader} icon='event_note'>
-            <div className="jsonBoxOuter"><pre className="jsonBox">{eventJSON}</pre></div>
-          </CollapsibleItem>
-        );
-      });
-    }
+    const events = this.props.events.get('eventlog').map((event, index) => {
+      const eventHeader = this.getEventHeader(event);
+      const eventJSON = JSON.stringify(event, null, 2);
+      let icon = 'event_note';
+      
+      if (event.get('rule') == null) {
+        icon = 'create';
+      }
+      return (
+        <CollapsibleItem key={index} className="eventItem" header={eventHeader} icon={icon}>
+          <div className="jsonBoxOuter"><pre className="jsonBox">{eventJSON}</pre></div>
+        </CollapsibleItem>
+      );
+    });
+    
     return (
       <div>
         {this.maybeRenderPredicted()}

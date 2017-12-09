@@ -34,3 +34,22 @@
 .rule {
   font-weight: 550;
 }
+
+.fontWeightBold {
+  font-weight: bold;
+}
+
+.eventHeaderP {
+  margin: 0;
+  align: left;
+}
+
+.eventHeaderTime {
+  float: right;
+}
+
+.predictedTime {
+  text-align: right;
+  margin-bottom: .1 em;
+  display: block;
+}
