@@ -12,8 +12,6 @@ import {
   CollapsibleItem,
 } from 'react-materialize';
 import moment from 'moment';
-import { Permissions, auth } from '../requests/auth';
-
 
 import { auth, Permissions } from '../requests/auth';
 
@@ -75,9 +73,6 @@ class Events extends Component {
   maybeRenderPredicted() {
     let allPredicted = this.props.events.get('predicted');
 
-    if (allPredicted !== null) {
-      const renderedPredicted = allPredicted.map((predicted, index) => {
-
     let renderedPredicted;
     if (allPredicted == null) return;
 
@@ -135,7 +130,7 @@ class Events extends Component {
         values = fromJS([values]);
       }
       const allValues = values.toJS().join(', ');
-    return propertyName + '=' + allValues;
+      return propertyName + '=' + allValues;
     }).join('; ') + ']';
   }
 
