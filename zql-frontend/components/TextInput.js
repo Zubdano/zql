@@ -87,6 +87,7 @@ class TextInput extends Component {
       icon = 'create';
       iconClass = 'Text-input-incomplete-status';
     }
+    const submitButtonText = this.props.status === 'accept' ? 'Submit' : 'Submit as a note';
 
     return (
       <div className='textInput'>
@@ -115,8 +116,7 @@ class TextInput extends Component {
           type="button"
           className="Text-input-submit-button"
           onClick={this.handleSubmitClick}
-          disabled={this.props.status !== 'accept'}
-        >Submit</Button>
+        >{submitButtonText}</Button>
       </div>
     );
   }

@@ -14,9 +14,15 @@
   margin-top: 2em;
   width: 50em;
 }
+
 .eventItem {
   text-align: left;
   background-color: #272b2d;
+}
+
+.predictedEventItem {
+  text-align: left;
+  background-color: #38435a;
 }
 
 .jsonBoxOuter {
@@ -33,4 +39,33 @@
 
 .rule {
   font-weight: 550;
+}
+
+.fontWeightBold {
+  font-weight: bold;
+}
+
+.eventHeaderP {
+  margin: 0;
+  align: left;
+}
+
+.eventTarget {
+  float: right;
+  margin-right: 0.2em;
+}
+
+.eventHeaderTime {
+  float: right;
+}
+
+.predictedTime {
+  text-align: right;
+  margin-bottom: .1 em;
+  display: block;
+}
+
+.yourEventsHeading {
+  margin-top: 1em;
+  margin-bottom: 0em;
 }
