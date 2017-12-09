@@ -102,18 +102,22 @@ class GetEventsHandler(BaseHandler):
         """
         # TODO: Handle errors
         user_id = request.headers.get('User.Username')
+        permission = int(request.headers.get('User.Permission'))
 
         if user_id is None:
             return jsonify([])
 
+        # Want to find events that the user authored or was tagged in.
         query = {'$or': [{'user_id': user_id}, {'author': user_id}]}
+        if permission == 0:
+            # Sysadmin can see everything.
+            query = {}
         cursor = self.mongo.db.events.find(query).sort('created_at', pymongo.DESCENDING)
         events = []
-        predicted = None
+        predicted = []
         for event in cursor:
             if event.get('predicted', False):
-                assert not predicted
-                predicted = {f: event[f] for f in self.PREDICTED_EVENT_OUTPUT_FIELDS}
+                predicted.append({f: event[f] for f in self.PREDICTED_EVENT_OUTPUT_FIELDS})
             else:
                 events.append({f: event[f] for f in self.EVENT_OUTPUT_FIELDS})
 
