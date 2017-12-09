@@ -37,5 +37,5 @@ EVENT_PIPELINE = CompositeProcessor([
 
 
 @job
-def process_event(data):
+def process_event_data(data):
 	EVENT_PIPELINE.process(data)

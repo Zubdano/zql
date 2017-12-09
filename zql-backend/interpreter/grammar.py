@@ -14,6 +14,7 @@ INCOMPLETE = 'incomplete'
 def parse_sentence(sentence, root_rule):
     parser = ParserPython(root_rule)
     res = {
+        'input': sentence,
         'rule': None,
         'status': None,
         'properties': {},
