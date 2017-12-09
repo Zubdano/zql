@@ -68,6 +68,13 @@ class GetEventsHandler(BaseHandler):
     view_name = 'get_events'
     methods = ['GET']
 
+    EVENT_OUTPUT_FIELDS = [
+        'created_at',
+        'user_id',
+        'properties',
+        'rule',
+    ]
+
     def __init__(self, mongo):
         """
         @param mongo: mongo client
@@ -88,7 +95,7 @@ class GetEventsHandler(BaseHandler):
         events = []
         predicted = None
         for event in cursor:
-            event['_id'] = str(event['_id'])
+            event = {f: event[f] for f in self.EVENT_OUTPUT_FIELDS}
 
             if event.get('predicted', False):
                 assert not predicted
