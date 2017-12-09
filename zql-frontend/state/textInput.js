@@ -157,13 +157,13 @@ function updateSearchValue(searchValue) {
 }
 
 function submitEvent(plainText) {
-  const data = {raw: plainText.toLowerCase()};
+  const data = {input: plainText.toLowerCase()};
   return (dispatch) => new Requestor(BASE_URL).post(EVENT_ROUTE, data)
     .then(json => dispatch(receiveEventResult(json)));
 }
 
 function fetchAnnotation(plainText) {
-  const data = {raw: plainText.toLowerCase()};
+  const data = {input: plainText.toLowerCase()};
   return (dispatch) => new Requestor(BASE_URL).post(ANNOTATION_ROUTE, data)
     .then(json => dispatch(receiveAnnotation(json)));
 }

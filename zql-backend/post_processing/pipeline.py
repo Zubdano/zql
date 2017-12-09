@@ -98,8 +98,16 @@ class InterpreterProcessor(Processor):
     INTERPRETER_URL = 'http://localhost:2020/interpret'
 
     def process(self, data):
-        res = requests.post(self.INTERPRETER_URL, json={'raw': data})
-        return EventState([res.json()])
+        res = requests.post(self.INTERPRETER_URL, json={'input': data['input']})
+        event = res.json()
+        event['author'] = data['author']
+
+        if event['user_id'] is None:
+            # TODO: make it so pipeline does not rely on
+            #       user_id as much as it currently does.
+            event['user_id'] = event['author']
+
+        return EventState([event])
 
 class MongoProcessor(Processor):
     """
@@ -205,6 +213,7 @@ class MarkovProcessor(MongoProcessor):
             if events:
                 return state.with_events([{
                     'user_id': state.events[0]['user_id'],
+                    'author': state.events[0]['author'], # event should show up for author
                     'properties': events[0]['properties'],
                     'rule': events[0]['rule'],
                     'predicted': True,
