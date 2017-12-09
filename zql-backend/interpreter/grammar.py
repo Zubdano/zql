@@ -15,6 +15,7 @@ def parse_sentence(sentence, root_rule):
     parser = ParserPython(root_rule)
     res = {
         'input': sentence,
+        'user_id': None,
         'rule': None,
         'status': None,
         'properties': {},

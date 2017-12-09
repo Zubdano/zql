@@ -15,6 +15,8 @@ import moment from 'moment';
 import { Permissions, auth } from '../requests/auth';
 
 
+import { auth, Permissions } from '../requests/auth';
+
 import { fetchEvents } from '../state/events';
 import './Events.scss';
 
@@ -35,19 +37,14 @@ class Events extends Component {
   }
 
   getEventHeader(event) {
-    let authorOrUser = 'user_id';
-
-    if (auth.currentUser.permission == Permissions.READER) {
-      authorOrUser = 'author';
-    }
-
-    let eventTitle = event.get(authorOrUser).toUpperCase() + ' - ' + event.get('rule');
+    let eventTitle = event.get('rule');
+    let eventTitleClass = 'rule';
     let ruleInformation = this.singleLineProperties(event.get('properties'));
 
     if (event.get('rule') == null) {
       eventTitle = event.get('input');
       const inputLen = eventTitle.length;
-
+      eventTitleClass = 'input';
       if (inputLen > MAX_LEN_HEADER) {
         eventTitle = eventTitle.substring(0, MAX_LEN_HEADER - 3) + '...';
       }
@@ -57,11 +54,20 @@ class Events extends Component {
 
     return (
       <p className="eventHeaderP">
-        <span className="rule">{eventTitle}</span>
+        <span className={eventTitleClass}>{eventTitle}</span>
         <span>{ruleInformation}</span>
         <span className="eventHeaderTime">
-            {this.computeTimeFromNow(event.get('created_at'))}
+          {this.computeTimeFromNow(event.get('created_at'))}
         </span>
+        {auth.currentUser.permission < Permissions.READER && event.get('rule')
+          ? <span className="eventTarget"> 
+              {event.get('prob')
+                ? <span className="fontWeightBold">{event.get('prob').toFixed(2)*100}% </span>
+                : null}
+              <span>for </span>
+              <span className="fontWeightBold">{event.get('user_id')}</span>
+            </span>
+          : null }
       </p>
     );
   }
@@ -71,6 +77,12 @@ class Events extends Component {
 
     if (allPredicted !== null) {
       const renderedPredicted = allPredicted.map((predicted, index) => {
+
+    let renderedPredicted;
+    if (allPredicted == null) return;
+
+    if (auth.currentUser.permission == Permissions.READER) {
+      renderedPredicted = allPredicted.map((predicted, index) => {
           const eventJSON = JSON.stringify(predicted.get('properties'), null, 2);
           const title = (
             <div>
@@ -92,8 +104,29 @@ class Events extends Component {
             </Card>
           );
       });
-      return renderedPredicted;
+    } else {
+      renderedPredicted = allPredicted.map((event, index) => {
+        const eventHeader = this.getEventHeader(event);
+        const eventJSON = JSON.stringify(event, null, 2);
+        
+
+        return (
+          <CollapsibleItem key={index} className="predictedEventItem" header={eventHeader} icon="info_outline">
+            <div className="jsonBoxOuter"><pre className="jsonBox">{eventJSON}</pre></div>
+          </CollapsibleItem>
+        );
+      });
+
+      renderedPredicted = (
+        <div>
+          <Collapsible popout className="eventBox">
+            {renderedPredicted}
+          </Collapsible>
+        </div>
+      );
     }
+
+    return renderedPredicted;
   }
 
   singleLineProperties(properties) {
@@ -120,7 +153,7 @@ class Events extends Component {
       let icon = 'event_note';
       
       if (event.get('rule') == null) {
-        icon = 'create';
+        icon = 'email';
       }
       return (
         <CollapsibleItem key={index} className="eventItem" header={eventHeader} icon={icon}>
@@ -128,10 +161,12 @@ class Events extends Component {
         </CollapsibleItem>
       );
     });
-    
+
     return (
       <div>
+        <h3>Predicted</h3>
         {this.maybeRenderPredicted()}
+        <h3 className='yourEventsHeading'>Your events</h3>
         <Collapsible popout className="eventBox">
           {events}
         </Collapsible>
