@@ -106,7 +106,8 @@ class GetEventsHandler(BaseHandler):
         if user_id is None:
             return jsonify([])
 
-        cursor = self.mongo.db.events.find({'user_id': user_id}).sort('created_at', pymongo.DESCENDING)
+        query = {'$or': [{'user_id': user_id}, {'author': user_id}]}
+        cursor = self.mongo.db.events.find(query).sort('created_at', pymongo.DESCENDING)
         events = []
         predicted = None
         for event in cursor:
